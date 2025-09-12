@@ -16,8 +16,8 @@ class MainTabBarController: UITabBarController {
         let mapVC = UINavigationController(rootViewController: MapViewController())
         mapVC.tabBarItem = UITabBarItem(title: "Карта", image: UIImage(systemName: CustomImagesAssets.map), tag: 1)
         
-//        let ratesVC = UINavigationController(rootViewController: RatesViewController())
-//        ratesVC.tabBarItem = UITabBarItem(title: "Курсы", image: UIImage(systemName: "CustomImagesAssets.dollarsignCircle), tag: 2)
+        let ratesVC = UINavigationController(rootViewController: ExchangeRatesViewController())
+        ratesVC.tabBarItem = UITabBarItem(title: "Курсы", image: UIImage(systemName: CustomImagesAssets.dollarsignCircle), tag: 2)
         
         let converterVC = UINavigationController(rootViewController: ConverterViewController())
         converterVC.tabBarItem = UITabBarItem(title: "Конвертер", image: UIImage(systemName: CustomImagesAssets.arrowLeftArrowRight), tag: 3)
@@ -25,7 +25,7 @@ class MainTabBarController: UITabBarController {
         let settingsVC = UINavigationController(rootViewController: SettingsViewController())
         settingsVC.tabBarItem = UITabBarItem(title: "Настройки", image: UIImage(systemName: CustomImagesAssets.gear), tag: 4)
         
-        viewControllers = [dashboardVC, mapVC/*, ratesVC*/, converterVC, settingsVC]
+        viewControllers = [dashboardVC, mapVC, ratesVC, converterVC, settingsVC]
     }
 }
 

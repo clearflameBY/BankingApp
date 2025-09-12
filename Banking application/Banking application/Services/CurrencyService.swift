@@ -43,11 +43,10 @@ class CurrencyService {
         URLSession.shared.dataTask(with: metalsURL) { data, _, error  in
             guard let data = data else { return }
             do {
-                let metals = try JSONDecoder().decode([MetalPrice].self, from: data)
-                let filtered = metals.filter { $0.metalId == 0 || $0.metalId == 1 }
+                let metals = try JSONDecoder().decode([MetalModel].self, from: data)
                 
                 DispatchQueue.main.async {
-                    for metal in filtered {
+                    for metal in metals {
                         let name = metal.metalId == 0 ? "Золото" : "Серебро"
                         DashboardViewController.curenciesData.append("\(name): \(metal.value) BYN/грамм")
                     }

@@ -10,19 +10,6 @@ import CoreLocation
 
 class MapViewController: UIViewController, UISearchResultsUpdating, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, CLLocationManagerDelegate {
     
-    func updateSearchResults(for searchController: UISearchController) {
-        guard let query = searchController.searchBar.text, !query.isEmpty else {
-            suggestions.removeAll()
-            customView.tableView.isHidden = true
-            customView.tableView.reloadData()
-            return
-        }
-        
-        fetchSuggestions(query: query) { items in
-            print(items) // здесь уже массив DgisSuggestItem
-        }
-    }
-    
     private let locationManager = CLLocationManager()
     private let customView = MapView()
     
@@ -51,13 +38,22 @@ class MapViewController: UIViewController, UISearchResultsUpdating, UITableViewD
         
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        
-        // Запросить разрешение
-        locationManager.requestWhenInUseAuthorization()
-        locationManager.startUpdatingLocation()
                 
         setupLocation()
         fetchATMs()
+    }
+    
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let query = searchController.searchBar.text, !query.isEmpty else {
+            suggestions.removeAll()
+            customView.tableView.isHidden = true
+            customView.tableView.reloadData()
+            return
+        }
+        
+        fetchSuggestions(query: query) { items in
+            print(items) // здесь уже массив DgisSuggestItem
+        }
     }
     
     private func centerOnUser() {
@@ -149,7 +145,7 @@ class MapViewController: UIViewController, UISearchResultsUpdating, UITableViewD
      }
     
     func fetchPlaceDetails(id: String, completion: @escaping (DgisPlace?) -> Void) {
-        let apiKey = "666718af-29db-461a-967f-9b0cb1cc20e5"
+        
         let urlString = "https://catalog.api.2gis.com/3.0/items?id=\(id)&fields=items.point,items.name&key=\(apiKey)"
         
         guard let url = URL(string: urlString) else {
@@ -191,7 +187,7 @@ extension MapViewController: MKMapViewDelegate {
 
 extension MapViewController {
     func fetchSuggestions(query: String, completion: @escaping ([DgisSuggestItem]) -> Void) {
-        let apiKey = "666718af-29db-461a-967f-9b0cb1cc20e5"
+        
         let urlString = "https://catalog.api.2gis.com/3.0/suggests?q=\(query)&key=\(apiKey)"
         
         guard let url = URL(string: urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "") else {

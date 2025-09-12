@@ -9,7 +9,7 @@ import SwiftUI
 import Charts
 
 struct ChartScreenForMetals: View {
-    @State private var history: [MetaPriceForChart] = []
+    @State private var history: [MetalModel] = []
     private let service = CurrencyServiceForCharts()
     let curId: Int
     let currencyName: String

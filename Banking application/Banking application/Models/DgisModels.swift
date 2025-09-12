@@ -16,7 +16,7 @@ struct DgisResult: Codable {
 struct DgisPlace: Codable {
     let id: String
     let point: DgisPoint
-    let address_name: String
+    let address_name: String?
     let name: String
 }
 

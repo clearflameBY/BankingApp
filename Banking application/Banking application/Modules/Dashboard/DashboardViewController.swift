@@ -10,10 +10,11 @@ import SwiftUI
 
 final class DashboardViewController: UIViewController {
     
-    private var rates: [CurrencyRate] = []
+    static var rates: [CurrencyRate] = []
     static var curenciesData: [String] = []
     private var currencyCodes: [String] = []
     private var currentAbbreviationOfCurrency = ""
+    let formatter = DateFormatter()
     
     private let service = CurrencyService()
     static let customView = DashboardView()
@@ -26,6 +27,7 @@ final class DashboardViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         title = "Dashboard"
+        formatter.dateFormat = "yyyy-MM-dd"
         
         fetchData()
         
@@ -65,10 +67,10 @@ final class DashboardViewController: UIViewController {
     private func handleSuccessFetchRates(_ rates: [CurrencyRate]) {
         var allRates = rates
         
-        let byn = CurrencyRate(curID: 0, curAbbreviation: "BYN", curScale: 1, curName: "Белорусский рубль", curOfficialRate: 1.0)
+        let byn = CurrencyRate( date: formatter.string(from: Date()), curOfficialRate: 1.0, curID: 0, curAbbreviation: "BYN", curScale: 1, curName: "Белорусский рубль")
         allRates.insert(byn, at: 0)
         
-        self.rates = allRates
+        DashboardViewController.rates = allRates
         self.currencyCodes = allRates.map { $0.curAbbreviation }
         
         DispatchQueue.main.async {
@@ -81,14 +83,12 @@ final class DashboardViewController: UIViewController {
     private func updateRatesUI() {        
         // Валюты
         let wantedCurrencies = ["UAH", "USD", "EUR", "RUB"]
-        for rate in rates.filter({ wantedCurrencies.contains($0.curAbbreviation) }) {
+        for rate in DashboardViewController.rates.filter({ wantedCurrencies.contains($0.curAbbreviation) }) {
             let ratePerOne = rate.curOfficialRate / Double(rate.curScale)
             DashboardViewController.curenciesData.append("\(rate.curAbbreviation): \(String(format: "%.4f", ratePerOne)) BYN")
         }
         
         // Металлы
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
         var dayForMetalCurrency = Date()
         
         while Calendar.current.isDateInWeekend(dayForMetalCurrency) {
@@ -102,7 +102,7 @@ final class DashboardViewController: UIViewController {
     @objc private func showGraph(row: Int) {
         var currencyId = 0
         var currentAbbreviationOfCurrency = ""
-        var curScale = 1
+        var curScale = 1.0
         
         switch row {
         case 0:
@@ -146,8 +146,8 @@ final class DashboardViewController: UIViewController {
             let toCode = currencyCodes[safe: DashboardViewController.customView.toCurrencyPicker.selectedRow(inComponent: 0)],
             let amountText = DashboardViewController.customView.amountField.text,
             let amount = Double(amountText),
-            let fromRateData = rates.first(where: { $0.curAbbreviation == fromCode }),
-            let toRateData = rates.first(where: { $0.curAbbreviation == toCode })
+            let fromRateData = DashboardViewController.rates.first(where: { $0.curAbbreviation == fromCode }),
+            let toRateData = DashboardViewController.rates.first(where: { $0.curAbbreviation == toCode })
         else { return }
         
         let fromRatePerOne = fromRateData.curOfficialRate / Double(fromRateData.curScale)

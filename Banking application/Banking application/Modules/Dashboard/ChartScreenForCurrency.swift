@@ -11,7 +11,7 @@ import Charts
 struct ChartScreenForCurrency: View {
     @State private var history: [CurrencyHistory] = []
     private let service = CurrencyServiceForCharts()
-    let curScale: Int
+    let curScale: Double
     let curId: Int
     let currencyName: String
     
@@ -26,7 +26,7 @@ struct ChartScreenForCurrency: View {
                 Chart(history) { item in
                     LineMark(
                         x: .value("Date", formatDate(item.date)),
-                        y: .value("BYN", item.curOfficialRate / Double(curScale))
+                        y: .value("BYN", item.curOfficialRate / curScale)
                     )
                     .foregroundStyle(.blue)
                     .symbol(Circle())

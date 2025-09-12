@@ -26,7 +26,7 @@ class CurrencyServiceForCharts {
         }.resume()
     }
     
-    func fetchHistoryForMetals(curId: Int, startDate: String, endDate: String, completion: @escaping ([MetaPriceForChart]) -> Void) {
+    func fetchHistoryForMetals(curId: Int, startDate: String, endDate: String, completion: @escaping ([MetalModel]) -> Void) {
         let urlString = "https://api.nbrb.by/bankingots/prices?startdate=\(startDate)&endDate=\(endDate)"
         guard let url = URL(string: urlString) else {
         completion([])
@@ -35,7 +35,7 @@ class CurrencyServiceForCharts {
 
         URLSession.shared.dataTask(with: url) { data, _, _ in
             if let data = data {
-                let history = try? JSONDecoder().decode([MetaPriceForChart].self, from: data)
+                let history = try? JSONDecoder().decode([MetalModel].self, from: data)
                 let filteredHistory = history?.filter { $0.metalId == curId }
                 completion(filteredHistory ?? [])
             } else {
