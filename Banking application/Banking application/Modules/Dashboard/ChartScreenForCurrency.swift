@@ -10,6 +10,7 @@ import Charts
 
 struct ChartScreenForCurrency: View {
     @State private var history: [CurrencyHistory] = []
+    
     private let service = CurrencyServiceForCharts()
     let curScale: Double
     let curId: Int

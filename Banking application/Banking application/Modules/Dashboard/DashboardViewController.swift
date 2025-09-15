@@ -10,11 +10,12 @@ import SwiftUI
 
 final class DashboardViewController: UIViewController {
     
-    static var rates: [CurrencyRate] = []
-    static var curenciesData: [String] = []
+    private var rates: [CurrencyRate] = []
+    private var metals : [MetalModel] = []
+    private var curenciesData: [String] = []
     private var currencyCodes: [String] = []
     private var currentAbbreviationOfCurrency = ""
-    let formatter = DateFormatter()
+    private let formatter = DateFormatter()
     
     private let service = CurrencyService()
     static let customView = DashboardView()
@@ -40,6 +41,7 @@ final class DashboardViewController: UIViewController {
         })
         
         let recognizer = UITapGestureRecognizer(target: DashboardViewController.customView, action: #selector(DashboardViewController.customView.endEditing))
+        
         recognizer.cancelsTouchesInView = false // for working tableView
         DashboardViewController.customView.addGestureRecognizer(recognizer)
         
@@ -70,7 +72,7 @@ final class DashboardViewController: UIViewController {
         let byn = CurrencyRate( date: formatter.string(from: Date()), curOfficialRate: 1.0, curID: 0, curAbbreviation: "BYN", curScale: 1, curName: "Белорусский рубль")
         allRates.insert(byn, at: 0)
         
-        DashboardViewController.rates = allRates
+        self.rates = allRates
         self.currencyCodes = allRates.map { $0.curAbbreviation }
         
         DispatchQueue.main.async {
@@ -83,9 +85,9 @@ final class DashboardViewController: UIViewController {
     private func updateRatesUI() {        
         // Валюты
         let wantedCurrencies = ["UAH", "USD", "EUR", "RUB"]
-        for rate in DashboardViewController.rates.filter({ wantedCurrencies.contains($0.curAbbreviation) }) {
+        for rate in rates.filter({ wantedCurrencies.contains($0.curAbbreviation) }) {
             let ratePerOne = rate.curOfficialRate / Double(rate.curScale)
-            DashboardViewController.curenciesData.append("\(rate.curAbbreviation): \(String(format: "%.4f", ratePerOne)) BYN")
+            curenciesData.append("\(rate.curAbbreviation): \(String(format: "%.4f", ratePerOne)) BYN")
         }
         
         // Металлы
@@ -95,8 +97,26 @@ final class DashboardViewController: UIViewController {
             dayForMetalCurrency = Calendar.current.date(byAdding: .day, value: -1, to: dayForMetalCurrency)!
         }
         let dayForMetalCurrencyString = formatter.string(from: dayForMetalCurrency)
+        
+        service.fetchRatesForMetals(dayForMetalCurrencyString: dayForMetalCurrencyString) { result in
+            switch result {
+            case .success(let metals):
+                self.fetchMetals(metals)
+            case .failure(let error):
+                print("Ошибка загрузки:", error.localizedDescription)
+            }
+        }
+    }
+    
+    private func fetchMetals(_ metals: [MetalModel]) {
+        self.metals = metals
+        let wantedMetalsID = [0,1]
+        for metal in self.metals.filter({ wantedMetalsID.contains($0.metalId) }) {
+            let name = metal.metalId == 0 ? "Золото" : "Серебро"
+            self.curenciesData.append("\(name): \(metal.value) BYN/грамм")
+        }
+        DashboardViewController.customView.rates.reloadData()
 
-        service.fetchRatesForMetals(dayForMetalCurrencyString: dayForMetalCurrencyString)
     }
     
     @objc private func showGraph(row: Int) {
@@ -146,8 +166,8 @@ final class DashboardViewController: UIViewController {
             let toCode = currencyCodes[safe: DashboardViewController.customView.toCurrencyPicker.selectedRow(inComponent: 0)],
             let amountText = DashboardViewController.customView.amountField.text,
             let amount = Double(amountText),
-            let fromRateData = DashboardViewController.rates.first(where: { $0.curAbbreviation == fromCode }),
-            let toRateData = DashboardViewController.rates.first(where: { $0.curAbbreviation == toCode })
+            let fromRateData = rates.first(where: { $0.curAbbreviation == fromCode }),
+            let toRateData = rates.first(where: { $0.curAbbreviation == toCode })
         else { return }
         
         let fromRatePerOne = fromRateData.curOfficialRate / Double(fromRateData.curScale)
@@ -185,14 +205,14 @@ extension Collection {
 
 extension DashboardViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return DashboardViewController.curenciesData.count
+        return curenciesData.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         cell.selectionStyle = .default
         cell.textLabel?.font = UIFont.systemFont(ofSize: 14)
-        cell.textLabel?.text = DashboardViewController.curenciesData[indexPath.row]
+        cell.textLabel?.text = curenciesData[indexPath.row]
         return cell
     }
     

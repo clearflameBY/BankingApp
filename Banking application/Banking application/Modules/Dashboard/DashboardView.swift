@@ -39,8 +39,17 @@ final class DashboardView: UIView {
         return button
     }()
     
-    let fromCurrencyPicker = UIPickerView()
-    let toCurrencyPicker = UIPickerView()
+    let fromCurrencyPicker: UIPickerView = {
+        let picker = UIPickerView()
+        picker.translatesAutoresizingMaskIntoConstraints = false
+        return picker
+    }()
+    
+    let toCurrencyPicker: UIPickerView = {
+        let picker = UIPickerView()
+        picker.translatesAutoresizingMaskIntoConstraints = false
+        return picker
+    }()
     
     let amountField: UITextField = {
         let tf = UITextField()
