@@ -8,37 +8,103 @@
 import UIKit
 
 class ConverterViewController: UIViewController {
-    private let amountField = UITextField()
-    private let resultLabel = UILabel()
+    
+    private let service = CurrencyService()
+    static let customView = ConverterView()
+    private let calculateService = CalculateService()
+    var storageVariable = ""
+        
+    override func loadView() {
+        view = ConverterViewController.customView
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Конвертер"
-        view.backgroundColor = .systemBackground
         
-        setupUI()
+        let recognizer = UITapGestureRecognizer(target: self, action: #selector(toggleFavorite(for: <#T##Currency#>)))
+        recognizer.numberOfTapsRequired = 2
+        
+        let leftLabelTapped = UIAction(handler: { _ in
+            ConverterViewController.customView.tableFrom.isHidden.toggle()
+        })
+        let rightLabelTapped = UIAction(handler: { _ in
+            ConverterViewController.customView.tableTo.isHidden.toggle()
+        })
+        let calculateConversion = UIAction(handler: { _ in
+            self.calculateService.calculateConversionForConverter()
+        })
+        let swapCurrency = UIAction(handler: { _ in
+            guard ConverterViewController.customView.buttonFrom.titleLabel?.text != "Choose currency from:",
+                  ConverterViewController.customView.buttonTo.titleLabel?.text != "Choose currency to:" else { return }
+            
+            self.storageVariable = ConverterViewController.customView.buttonFrom.titleLabel?.text ?? ""
+            ConverterViewController.customView.buttonFrom.setTitle(ConverterViewController.customView.buttonTo.titleLabel?.text, for: .normal)
+            ConverterViewController.customView.buttonTo.setTitle(self.storageVariable, for: .normal)
+        })
+        
+        ConverterViewController.customView.buttonFrom.addAction(leftLabelTapped, for: .touchUpInside)
+        ConverterViewController.customView.buttonTo.addAction(rightLabelTapped, for: .touchUpInside)
+        ConverterViewController.customView.swapButton.addAction(swapCurrency, for: .touchUpInside)
+        ConverterViewController.customView.textField.addAction(calculateConversion, for: .editingChanged)
+        ConverterViewController.customView.buttonFrom.addAction(calculateConversion, for: .allEditingEvents)
+        ConverterViewController.customView.buttonTo.addAction(calculateConversion, for: .allEditingEvents)
+
+        
+        ConverterViewController.customView.tableFrom.delegate = self
+        ConverterViewController.customView.tableFrom.dataSource = self
+        ConverterViewController.customView.tableTo.delegate = self
+        ConverterViewController.customView.tableTo.dataSource = self
     }
     
-    private func setupUI() {
-        amountField.placeholder = "Введите сумму"
-        amountField.borderStyle = .roundedRect
-        amountField.keyboardType = .decimalPad
+    private func saveFavorites(_ currencies: [Currency]) {
+        let data = try? JSONEncoder().encode(currencies)
+        UserDefaults.standard.set(data, forKey: "favoriteCurrencies")
+    }
+
+    private func loadFavorites() -> [Currency] {
+        guard let data = UserDefaults.standard.data(forKey: "favoriteCurrencies"),
+              let currencies = try? JSONDecoder().decode([Currency].self, from: data) else {
+            return []
+        }
+        return currencies
+    }
+    
+    private func toggleFavorite(for currency: Currency) {
+        var favorites = loadFavorites()
+        if favorites.contains(currency) {
+            favorites.removeAll { $0 == currency }
+        } else {
+            favorites.append(currency)
+        }
+        saveFavorites(favorites)
+    }
+}
+
+extension ConverterViewController: UITableViewDelegate, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        DashboardViewController.currencyCodes.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        resultLabel.text = "Результат: 0"
-        resultLabel.textAlignment = .center
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        cell.selectionStyle = .default
+        cell.textLabel?.text = DashboardViewController.currencyCodes[indexPath.row]
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        let stack = UIStackView(arrangedSubviews: [amountField, resultLabel])
-        stack.axis = .vertical
-        stack.spacing = 16
-        stack.translatesAutoresizingMaskIntoConstraints = false
+        tableView.deselectRow(at: indexPath, animated: true)
         
-        view.addSubview(stack)
+        if tableView == ConverterViewController.customView.tableFrom {
+            ConverterViewController.customView.buttonFrom.setTitle(DashboardViewController.currencyCodes[indexPath.row], for: .normal)
+            ConverterViewController.customView.tableFrom.isHidden = true
+        } else if tableView == ConverterViewController.customView.tableTo {
+            ConverterViewController.customView.buttonTo.setTitle(DashboardViewController.currencyCodes[indexPath.row], for: .normal)
+            ConverterViewController.customView.tableTo.isHidden = true
+        }
         
-        NSLayoutConstraint.activate([
-            stack.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            stack.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
-        ])
     }
 }

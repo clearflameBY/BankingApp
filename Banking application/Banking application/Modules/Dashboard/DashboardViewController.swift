@@ -10,16 +10,17 @@ import SwiftUI
 
 final class DashboardViewController: UIViewController {
     
-    private var rates: [CurrencyRate] = []
+    static var rates: [CurrencyRate] = []
     private var metals : [MetalModel] = []
     private var curenciesData: [String] = []
-    private var currencyCodes: [String] = []
+    static var currencyCodes: [String] = []
     private var currentAbbreviationOfCurrency = ""
-    private let formatter = DateFormatter()
     
+    private let formatter = DateFormatter()
     private let service = CurrencyService()
     static let customView = DashboardView()
-
+    private let calculateService = CalculateService()
+    
     override func loadView() {
         view = DashboardViewController.customView
     }
@@ -33,19 +34,29 @@ final class DashboardViewController: UIViewController {
         fetchData()
         
         let openRates = UIAction(handler: { _ in
-            self.openAllRates()
+            self.tabBarController?.selectedIndex = 2
+        })
+        
+        let openConverter = UIAction(handler: { _ in
+            self.tabBarController?.selectedIndex = 3
+        })
+        
+        let openSearchingATMs = UIAction(handler: { _ in
+            self.tabBarController?.selectedIndex = 1
         })
         
         let calculateConversion = UIAction(handler: { _ in
-            self.calculateConversion()
+            self.calculateService.calculateConversionForDashboard()
         })
         
-        let recognizer = UITapGestureRecognizer(target: DashboardViewController.customView, action: #selector(DashboardViewController.customView.endEditing))
+        let recognizerHideKeyboard = UITapGestureRecognizer(target: DashboardViewController.customView, action: #selector(DashboardViewController.customView.endEditing))
         
-        recognizer.cancelsTouchesInView = false // for working tableView
-        DashboardViewController.customView.addGestureRecognizer(recognizer)
+        recognizerHideKeyboard.cancelsTouchesInView = false // for working tableView
+        DashboardViewController.customView.addGestureRecognizer(recognizerHideKeyboard)
         
         DashboardViewController.customView.allRatesButton.addAction(openRates, for: .touchUpInside)
+        DashboardViewController.customView.converterButton.addAction(openConverter, for: .touchUpInside)
+        DashboardViewController.customView.searchATMButton.addAction(openSearchingATMs, for: .touchUpInside)
         DashboardViewController.customView.amountField.addAction(calculateConversion, for: .editingChanged)
         DashboardViewController.customView.fromCurrencyPicker.dataSource = self
         DashboardViewController.customView.fromCurrencyPicker.delegate = self
@@ -72,8 +83,8 @@ final class DashboardViewController: UIViewController {
         let byn = CurrencyRate( date: formatter.string(from: Date()), curOfficialRate: 1.0, curID: 0, curAbbreviation: "BYN", curScale: 1, curName: "Белорусский рубль")
         allRates.insert(byn, at: 0)
         
-        self.rates = allRates
-        self.currencyCodes = allRates.map { $0.curAbbreviation }
+        DashboardViewController.rates = allRates
+        DashboardViewController.currencyCodes = allRates.map { $0.curAbbreviation }
         
         DispatchQueue.main.async {
             self.updateRatesUI()
@@ -82,10 +93,10 @@ final class DashboardViewController: UIViewController {
         }
     }
     
-    private func updateRatesUI() {        
+    private func updateRatesUI() {
         // Валюты
         let wantedCurrencies = ["UAH", "USD", "EUR", "RUB"]
-        for rate in rates.filter({ wantedCurrencies.contains($0.curAbbreviation) }) {
+        for rate in DashboardViewController.rates.filter({ wantedCurrencies.contains($0.curAbbreviation) }) {
             let ratePerOne = rate.curOfficialRate / Double(rate.curScale)
             curenciesData.append("\(rate.curAbbreviation): \(String(format: "%.4f", ratePerOne)) BYN")
         }
@@ -107,7 +118,7 @@ final class DashboardViewController: UIViewController {
             }
         }
     }
-    
+
     private func fetchMetals(_ metals: [MetalModel]) {
         self.metals = metals
         let wantedMetalsID = [0,1]
@@ -159,27 +170,6 @@ final class DashboardViewController: UIViewController {
             navigationController?.pushViewController(chartVC, animated: true)
         }
     }
-    
-    private func calculateConversion() {
-        guard
-            let fromCode = currencyCodes[safe: DashboardViewController.customView.fromCurrencyPicker.selectedRow(inComponent: 0)],
-            let toCode = currencyCodes[safe: DashboardViewController.customView.toCurrencyPicker.selectedRow(inComponent: 0)],
-            let amountText = DashboardViewController.customView.amountField.text,
-            let amount = Double(amountText),
-            let fromRateData = rates.first(where: { $0.curAbbreviation == fromCode }),
-            let toRateData = rates.first(where: { $0.curAbbreviation == toCode })
-        else { return }
-        
-        let fromRatePerOne = fromRateData.curOfficialRate / Double(fromRateData.curScale)
-        let toRatePerOne = toRateData.curOfficialRate / Double(toRateData.curScale)
-        
-        let result = amount * (fromRatePerOne / toRatePerOne)
-        DashboardViewController.customView.resultLabel.text = String(format: "Результат: %.2f", result)
-    }
-    
-    private func openAllRates() {
-        tabBarController?.selectedIndex = 2
-    }
 }
 
 extension DashboardViewController: UIPickerViewDataSource, UIPickerViewDelegate {
@@ -187,13 +177,13 @@ extension DashboardViewController: UIPickerViewDataSource, UIPickerViewDelegate 
         1
     }
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        currencyCodes.count
+        DashboardViewController.currencyCodes.count
     }
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        currencyCodes[safe: row]
+        DashboardViewController.currencyCodes[safe: row]
     }
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        calculateConversion()
+        calculateService.calculateConversionForDashboard()
     }
 }
 

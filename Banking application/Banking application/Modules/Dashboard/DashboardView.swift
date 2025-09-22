@@ -13,29 +13,61 @@ final class DashboardView: UIView {
         let label = UILabel()
         label.text = "Баланс: 0 BYN"
         label.font = .boldSystemFont(ofSize: 18)
+        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
     let allRatesButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Все курсы", for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .medium)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .medium)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.tintColor = .red
+        return button
+     }()
+    
+    let converterButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Конвертер", for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .medium)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.tintColor = .red
+        return button
+     }()
+    
+    let searchATMButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Быстрый поиск банкоматов", for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .medium)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.tintColor = .red
         return button
      }()
     
     let rates: UITableView = {
-        let view = UITableView()
-        view.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.isUserInteractionEnabled = true
-        return view
+        let table = UITableView()
+        table.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        table.translatesAutoresizingMaskIntoConstraints = false
+        table.layer.borderColor = UIColor.gray.cgColor
+        table.layer.borderWidth = 1.0
+        table.layer.cornerRadius = 8.0
+        table.rowHeight = 40
+        return table
+    }()
+    
+    let butttonsStack: UIStackView = {
+        let stack = UIStackView()
+        stack.axis = .horizontal
+        stack.spacing = 4
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        return stack
     }()
     
     private let notificationsButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("🔔", for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 22)
+        button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
     
@@ -54,8 +86,9 @@ final class DashboardView: UIView {
     let amountField: UITextField = {
         let tf = UITextField()
         tf.borderStyle = .roundedRect
-        tf.placeholder = "Сумма"
+        tf.placeholder = "Введите значение"
         tf.keyboardType = .decimalPad
+        tf.translatesAutoresizingMaskIntoConstraints = false
         return tf
     }()
     
@@ -63,6 +96,7 @@ final class DashboardView: UIView {
         let label = UILabel()
         label.text = "Результат: 0"
         label.font = .systemFont(ofSize: 16)
+        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
@@ -97,12 +131,18 @@ final class DashboardView: UIView {
     }
     
     private func setupUI() {
+        backgroundColor = .systemBackground
+        
         addSubview(headerStack)
         headerStack.addArrangedSubview(balanceLabel)
         headerStack.addArrangedSubview(notificationsButton)
         
         addSubview(rates)
-        addSubview(allRatesButton)
+        
+        addSubview(butttonsStack)
+        butttonsStack.addArrangedSubview(allRatesButton)
+        butttonsStack.addArrangedSubview(converterButton)
+        butttonsStack.addArrangedSubview(searchATMButton)
         
         addSubview(converterStack)
         converterStack.addArrangedSubview(fromCurrencyPicker)
@@ -123,10 +163,11 @@ final class DashboardView: UIView {
             rates.trailingAnchor.constraint(equalTo: trailingAnchor),
             rates.heightAnchor.constraint(equalToConstant: 250),
             
-            allRatesButton.topAnchor.constraint(equalTo: rates.bottomAnchor, constant: 5),
-            allRatesButton.centerXAnchor.constraint(equalTo: centerXAnchor),
+            butttonsStack.topAnchor.constraint(equalTo: rates.bottomAnchor, constant: 5),
+            butttonsStack.leadingAnchor.constraint(equalTo: leadingAnchor),
+            butttonsStack.trailingAnchor.constraint(equalTo: trailingAnchor),
             
-            mainStack.topAnchor.constraint(equalTo: allRatesButton.bottomAnchor, constant: 5),
+            mainStack.topAnchor.constraint(equalTo: butttonsStack.bottomAnchor, constant: 5),
             mainStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             mainStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
         ])
