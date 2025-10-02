@@ -1,5 +1,5 @@
 {
-  "originHash" : "f176c807ee0179b7ccd67a6fd651b924472919b95cd5959de5844e0ded2f1945",
+  "originHash" : "475ac88ed4a32a8514180cbe3290d94f9e3a3dd0f5f184a353eb3ab192ca05bc",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -8,15 +8,6 @@
       "state" : {
         "revision" : "513364f870f6bfc468f9d2ff0a95caccc10044c5",
         "version" : "5.10.2"
-      }
-    },
-    {
-      "identity" : "mobile-sdk-full-swift-package",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/2gis/mobile-sdk-full-swift-package",
-      "state" : {
-        "revision" : "0424ffdb47bcae7ed445cc45f1f8a356a73eebc6",
-        "version" : "12.8.0"
       }
     },
     {
@@ -44,6 +35,15 @@
       "state" : {
         "revision" : "5dd1907d64f0d36f158f61a466bab75067224893",
         "version" : "6.9.0"
+      }
+    },
+    {
+      "identity" : "snapkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SnapKit/SnapKit",
+      "state" : {
+        "revision" : "2842e6e84e82eb9a8dac0100ca90d9444b0307f4",
+        "version" : "5.7.1"
       }
     }
   ],

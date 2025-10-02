@@ -7,12 +7,12 @@
 
 import UIKit
 
-class ConverterViewController: UIViewController {
+final class ConverterViewController: UIViewController {
     
     private let service = CurrencyService()
     static let customView = ConverterView()
     private let calculateService = CalculateService()
-    var storageVariable = ""
+    var storageForVariable = ""
         
     override func loadView() {
         view = ConverterViewController.customView
@@ -21,9 +21,6 @@ class ConverterViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Конвертер"
-        
-        let recognizer = UITapGestureRecognizer(target: self, action: #selector(toggleFavorite(for: <#T##Currency#>)))
-        recognizer.numberOfTapsRequired = 2
         
         let leftLabelTapped = UIAction(handler: { _ in
             ConverterViewController.customView.tableFrom.isHidden.toggle()
@@ -34,22 +31,28 @@ class ConverterViewController: UIViewController {
         let calculateConversion = UIAction(handler: { _ in
             self.calculateService.calculateConversionForConverter()
         })
+        let openHistory = UIAction(handler: { _ in
+            self.present(ConversionsHistoryViewController(), animated: true)
+        })
         let swapCurrency = UIAction(handler: { _ in
             guard ConverterViewController.customView.buttonFrom.titleLabel?.text != "Choose currency from:",
                   ConverterViewController.customView.buttonTo.titleLabel?.text != "Choose currency to:" else { return }
             
-            self.storageVariable = ConverterViewController.customView.buttonFrom.titleLabel?.text ?? ""
+            self.storageForVariable = ConverterViewController.customView.buttonFrom.titleLabel?.text ?? ""
             ConverterViewController.customView.buttonFrom.setTitle(ConverterViewController.customView.buttonTo.titleLabel?.text, for: .normal)
-            ConverterViewController.customView.buttonTo.setTitle(self.storageVariable, for: .normal)
+            ConverterViewController.customView.buttonTo.setTitle(self.storageForVariable, for: .normal)
+            
+            self.calculateService.calculateConversionForConverter()
         })
+        let recognizerHideKeyboard = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
+        recognizerHideKeyboard.cancelsTouchesInView = false
+        view.addGestureRecognizer(recognizerHideKeyboard)
         
         ConverterViewController.customView.buttonFrom.addAction(leftLabelTapped, for: .touchUpInside)
         ConverterViewController.customView.buttonTo.addAction(rightLabelTapped, for: .touchUpInside)
         ConverterViewController.customView.swapButton.addAction(swapCurrency, for: .touchUpInside)
+        ConverterViewController.customView.historyButton.addAction(openHistory, for: .touchUpInside)
         ConverterViewController.customView.textField.addAction(calculateConversion, for: .editingChanged)
-        ConverterViewController.customView.buttonFrom.addAction(calculateConversion, for: .allEditingEvents)
-        ConverterViewController.customView.buttonTo.addAction(calculateConversion, for: .allEditingEvents)
-
         
         ConverterViewController.customView.tableFrom.delegate = self
         ConverterViewController.customView.tableFrom.dataSource = self
@@ -57,27 +60,9 @@ class ConverterViewController: UIViewController {
         ConverterViewController.customView.tableTo.dataSource = self
     }
     
-    private func saveFavorites(_ currencies: [Currency]) {
-        let data = try? JSONEncoder().encode(currencies)
-        UserDefaults.standard.set(data, forKey: "favoriteCurrencies")
-    }
-
-    private func loadFavorites() -> [Currency] {
-        guard let data = UserDefaults.standard.data(forKey: "favoriteCurrencies"),
-              let currencies = try? JSONDecoder().decode([Currency].self, from: data) else {
-            return []
-        }
-        return currencies
-    }
-    
-    private func toggleFavorite(for currency: Currency) {
-        var favorites = loadFavorites()
-        if favorites.contains(currency) {
-            favorites.removeAll { $0 == currency }
-        } else {
-            favorites.append(currency)
-        }
-        saveFavorites(favorites)
+    @objc
+    private func hideKeyboard() {
+        view.endEditing(true)
     }
 }
 
@@ -101,10 +86,24 @@ extension ConverterViewController: UITableViewDelegate, UITableViewDataSource {
         if tableView == ConverterViewController.customView.tableFrom {
             ConverterViewController.customView.buttonFrom.setTitle(DashboardViewController.currencyCodes[indexPath.row], for: .normal)
             ConverterViewController.customView.tableFrom.isHidden = true
+            
+            guard let title = ConverterViewController.customView.buttonTo.title(for: .normal),
+                  title != "Choose currency to:",
+                  ConverterViewController.customView.textField.text != "" else { return }
+            
+                    calculateService.calculateConversionForConverter()
+            
         } else if tableView == ConverterViewController.customView.tableTo {
             ConverterViewController.customView.buttonTo.setTitle(DashboardViewController.currencyCodes[indexPath.row], for: .normal)
             ConverterViewController.customView.tableTo.isHidden = true
+            
+            guard let title = ConverterViewController.customView.buttonFrom.title(for: .normal),
+                  title != "Choose currency from:",
+                  ConverterViewController.customView.textField.text != "" else { return }
+            
+                    calculateService.calculateConversionForConverter()
         }
         
     }
 }
+

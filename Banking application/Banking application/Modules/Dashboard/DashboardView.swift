@@ -94,7 +94,7 @@ final class DashboardView: UIView {
     
     let resultLabel: UILabel = {
         let label = UILabel()
-        label.text = "Результат: 0"
+        label.text = "Результат: 0.00"
         label.font = .systemFont(ofSize: 16)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -164,7 +164,7 @@ final class DashboardView: UIView {
             rates.heightAnchor.constraint(equalToConstant: 250),
             
             butttonsStack.topAnchor.constraint(equalTo: rates.bottomAnchor, constant: 5),
-            butttonsStack.leadingAnchor.constraint(equalTo: leadingAnchor),
+            butttonsStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
             butttonsStack.trailingAnchor.constraint(equalTo: trailingAnchor),
             
             mainStack.topAnchor.constraint(equalTo: butttonsStack.bottomAnchor, constant: 5),

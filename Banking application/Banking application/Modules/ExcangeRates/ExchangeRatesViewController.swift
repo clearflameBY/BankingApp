@@ -8,63 +8,108 @@ import UIKit
 import SwiftUI
 
 class ExchangeRatesViewController: UIViewController {
+    
     private let tableView = UITableView(frame: .zero, style: .grouped)
     private var rates: [CurrencyRate2] = []
     private var filteredRates: [CurrencyRate2] = []
     
+    private var favoriteCodes: Set<String> = []
+    private let favoritesKey = "FavoriteCurrencyCodes"
+    
     private let formatter = DateFormatter()
     private let service = CurrencyService()
     private let searchController = UISearchController(searchResultsController: nil)
-
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         formatter.dateFormat = "yyyy-MM-dd"
-        
         title = "Курсы"
+        
+        let recognizerHideKeyboard = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
+        recognizerHideKeyboard.cancelsTouchesInView = false
+        view.addGestureRecognizer(recognizerHideKeyboard)
+        
         setupTableView()
         setupSearch()
         setupRefresh()
-
+        loadFavorites()
         fetchRates()
     }
-
+    
     private func setupTableView() {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(tableView)
-        tableView.frame = view.bounds
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
         tableView.dataSource = self
         tableView.delegate = self
+        tableView.register(TableViewCell.self, forCellReuseIdentifier: "exchangeCell")
     }
-
+    
     private func setupSearch() {
         navigationItem.searchController = searchController
         searchController.searchResultsUpdater = self
     }
-
+    
     private func setupRefresh() {
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(fetchRates), for: .valueChanged)
         tableView.refreshControl = refreshControl
     }
-
+    
+    // MARK: - Favorites
+    private func loadFavorites() {
+        if let codes = UserDefaults.standard.array(forKey: favoritesKey) as? [String] {
+            favoriteCodes = Set(codes)
+        }
+    }
+    
+    private func saveFavorites() {
+        UserDefaults.standard.set(Array(favoriteCodes), forKey: favoritesKey)
+    }
+    
+    private func isFavorite(code: String) -> Bool {
+        favoriteCodes.contains(code)
+    }
+    
+    private func toggleFavorite(code: String) {
+        if favoriteCodes.contains(code) {
+            favoriteCodes.remove(code)
+        } else {
+            favoriteCodes.insert(code)
+        }
+        saveFavorites()
+        tableView.reloadData()
+    }
+    
     @objc private func fetchRates() {
+        rates.removeAll()
+        filteredRates.removeAll()
+        tableView.reloadData()
         mockRates()
         mockMetals()
         mockCryptos()
     }
-
+    
     private func mockRates(){
         service.fetchRatesForCurrency { result in
             switch result {
             case .success(let currencyRates):
                 currencyRates.forEach { element in
                     self.rates.append(CurrencyRate2(name: element.curAbbreviation,
-                                                     fullName: element.curName,
-                                                     rate: element.curOfficialRate / element.curScale,
-                                                     type: .fiat))
-                self.filteredRates = self.rates
-                self.tableView.reloadData()
-                self.tableView.refreshControl?.endRefreshing()
+                                                    fullName: element.curName,
+                                                    rate: element.curOfficialRate / element.curScale,
+                                                    type: .fiat))
+                }
+                DispatchQueue.main.async {
+                    self.filteredRates = self.rates
+                    self.tableView.reloadData()
+                    self.tableView.refreshControl?.endRefreshing()
                 }
             case .failure(let error):
                 print("Ошибка загрузки:", error.localizedDescription)
@@ -74,27 +119,26 @@ class ExchangeRatesViewController: UIViewController {
     
     private func mockMetals(){
         var dayForMetalCurrency = Date()
-        
         while Calendar.current.isDateInWeekend(dayForMetalCurrency) {
             dayForMetalCurrency = Calendar.current.date(byAdding: .day, value: -1, to: dayForMetalCurrency)!
         }
         let dayForMetalCurrencyString = formatter.string(from: dayForMetalCurrency)
-        
         service.fetchRatesForMetals(dayForMetalCurrencyString: dayForMetalCurrencyString) { result in
             switch result {
-                case .success(let metals):
-                    metals.forEach { element in
-                        self.rates.append(CurrencyRate2(name: element.metalId == 0 ? "XAU" : element.metalId == 1 ? "XAG" : element.metalId == 2 ? "XPT" : element.metalId == 3 ? "XPD" : "",
-                                                        fullName: element.metalId == 0 ? "Золото" : element.metalId == 1 ? "Серебро" : element.metalId == 2 ? "Платина" : element.metalId == 3 ? "Палладий" : "",
-                                                        rate: element.value,
-                                                        type: .metal))
-                    }
-                    
+            case .success(let metals):
+                metals.forEach { element in
+                    self.rates.append(CurrencyRate2(name: element.metalId == 0 ? "XAU" : element.metalId == 1 ? "XAG" : element.metalId == 2 ? "XPT" : element.metalId == 3 ? "XPD" : "",
+                                                    fullName: element.metalId == 0 ? "Золото" : element.metalId == 1 ? "Серебро" : element.metalId == 2 ? "Платина" : element.metalId == 3 ? "Палладий" : "",
+                                                    rate: element.value,
+                                                    type: .metal))
+                }
+                DispatchQueue.main.async {
                     self.filteredRates = self.rates
                     self.tableView.reloadData()
                     self.tableView.refreshControl?.endRefreshing()
-                case .failure(let error):
-                    print("Ошибка загрузки:", error.localizedDescription)
+                }
+            case .failure(let error):
+                print("Ошибка загрузки:", error.localizedDescription)
             }
         }
     }
@@ -118,194 +162,150 @@ class ExchangeRatesViewController: UIViewController {
             }
         }
     }
-}
-
-extension ExchangeRatesViewController: UITableViewDataSource {
-    func numberOfSections(in tableView: UITableView) -> Int { 3 }
-
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let type: CurrencyType = section == 0 ? .fiat : section == 1 ? .crypto : .metal
-        return filteredRates.filter { $0.type == type }.count
+    
+    // MARK: - Section helpers
+    private func section(at index: Int) -> exchangesTableSection {
+        guard let s = exchangesTableSection(rawValue: index) else {
+            fatalError("Unexpected section index: \(index)")
+        }
+        return s
     }
-
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    
+    private func items(for section: exchangesTableSection) -> [CurrencyRate2] {
         switch section {
-        case 0: return "Валюты"
-        case 1: return "Криптовалюты"
-        case 2: return "Драгметаллы"
-        default: return nil
+        case .favorites:
+            return filteredRates.filter { isFavorite(code: $0.name) }
+        case .fiat:
+            return filteredRates.filter { $0.type == .fiat && !isFavorite(code: $0.name) }
+        case .crypto:
+            return filteredRates.filter { $0.type == .crypto && !isFavorite(code: $0.name) }
+        case .metal:
+            return filteredRates.filter { $0.type == .metal && !isFavorite(code: $0.name) }
         }
     }
+    
+    @objc
+    private func hideKeyboard() {
+        view.endEditing(true)
+    }
+}
 
+// MARK: - Table View Data Source
+extension ExchangeRatesViewController: UITableViewDataSource {
+    func numberOfSections(in tableView: UITableView) -> Int {
+        exchangesTableSection.allCases.count
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection sectionIndex: Int) -> Int {
+        let s = section(at: sectionIndex)
+        return items(for: s).count
+    }
+    
+    func tableView(_ tableView: UITableView, titleForHeaderInSection sectionIndex: Int) -> String? {
+        section(at: sectionIndex).title
+    }
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let type: CurrencyType = indexPath.section == 0 ? .fiat : indexPath.section == 1 ? .crypto : .metal
-        let items = filteredRates.filter { $0.type == type }
 
-        let rate = items[indexPath.row]
-        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
-        cell.textLabel?.text = "\(rate.name) - \(rate.fullName)"
-        if rate.type == .crypto {
-            cell.detailTextLabel?.text = "Курс: \(rate.rate) USD"
-            } else {
-                cell.detailTextLabel?.text = "Курс: \(rate.rate) BYN"
-            }
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "exchangeCell", for: indexPath) as? TableViewCell else {
+            return UITableViewCell()
+        }
+        let s = section(at: indexPath.section)
+        let rate = items(for: s)[indexPath.row]
+        let isFav = isFavorite(code: rate.name)
+
+        cell.configureCell(rate: rate, isFavorite: isFav)
+        cell.onToggleFavorite = { [weak self] in
+            self?.toggleFavorite(code: rate.name)
+        }
+
         return cell
     }
 }
 
+// MARK: - Table View Delegate
 extension ExchangeRatesViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView,
+                   trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath)
+    -> UISwipeActionsConfiguration? {
+        let s = section(at: indexPath.section)
+        let rate = items(for: s)[indexPath.row]
+        
+        let isFav = isFavorite(code: rate.name)
+        let action = UIContextualAction(style: .normal,
+                                        title: isFav ? "Убрать из избранного" : "В избранное") { [weak self] _, _, completion in
+            self?.toggleFavorite(code: rate.name)
+            completion(true)
+        }
+        action.backgroundColor = isFav ? .systemOrange : .systemBlue
+        return UISwipeActionsConfiguration(actions: [action])
+    }
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        
-        guard let cell = tableView.cellForRow(at: indexPath),
-              let text = cell.textLabel?.text else { return }
-        
+
+        let s = section(at: indexPath.section)
+        let rate = items(for: s)[indexPath.row]
+        let code = rate.name
+
         var curScale = 1.0
-        var curId: Int = 0
-        var currencyName: String = ""
+        var curId: Int = -1
+        let currencyName: String = code
         var currencyFullName: String = ""
         var isCrypto = false
-        
-        if text.contains("AUD") {
-            curId = 440
-            currencyName = "AUD"
-        } else if text.contains("AMD") {
-            curId = 510
-            currencyName = "AMD"
-            curScale = 1000
-        } else if text.contains("BGN") {
-            curId = 441
-            currencyName = "BGN"
-        } else if text.contains("BRL") {
-            curId = 514
-            currencyName = "BRL"
-            curScale = 10
-        } else if text.contains("UAH") {
-            curId = 449
-            currencyName = "UAH"
-            curScale = 100
-        } else if text.contains("DKK") {
-            curId = 450
-            currencyName = "DKK"
-            curScale = 10
-        } else if text.contains("AED") {
-            curId = 513
-            currencyName = "AED"
-            curScale = 10
-        } else if text.contains("USD") {
-            curId = 431
-            currencyName = "USD"
-        } else if text.contains("VND") {
-            curId = 512
-            currencyName = "VND"
-            curScale = 100000
-        } else if text.contains("EUR") {
-            curId = 451
-            currencyName = "EUR"
-        } else if text.contains("PLN") {
-            curId = 452
-            currencyName = "PLN"
-            curScale = 10
-        } else if text.contains("JPY") {
-            curId = 508
-            currencyName = "JPY"
-            curScale = 100
-        } else if text.contains("INR") {
-            curId = 511
-            currencyName = "INR"
-            curScale = 100
-        } else if text.contains("IRR") {
-            curId = 461
-            currencyName = "IRR"
-            curScale = 100000
-        } else if text.contains("ISK") {
-            curId = 453
-            currencyName = "ISK"
-            curScale = 100
-        } else if text.contains("CAD") {
-            curId = 371
-            currencyName = "CAD"
-        } else if text.contains("CNY") {
-            curId = 462
-            currencyName = "CNY"
-            curScale = 10
-        } else if text.contains("KWD") {
-            curId = 394
-            currencyName = "KWD"
-        } else if text.contains("MDL") {
-            curId = 454
-            currencyName = "MDL"
-            curScale = 10
-        } else if text.contains("NZD") {
-            curId = 448
-            currencyName = "NZD"
-        } else if text.contains("NOK") {
-            curId = 455
-            currencyName = "NOK"
-            curScale = 10
-        } else if text.contains("RUB") {
-            curId = 456
-            currencyName = "RUB"
-            curScale = 100
-        } else if text.contains("XDR") {
-            curId = 457
-            currencyName = "XDR"
-        } else if text.contains("SGD") {
-            curId = 421
-            currencyName = "SGD"
-        } else if text.contains("KGS") {
-            curId = 458
-            currencyName = "KGS"
-            curScale = 100
-        } else if text.contains("KZT") {
-            curId = 459
-            currencyName = "KZT"
-            curScale = 1000
-        } else if text.contains("TRY") {
-            curId = 460
-            currencyName = "TRY"
-            curScale = 10
-        } else if text.contains("GBP") {
-            curId = 429
-            currencyName = "GBP"
-        } else if text.contains("CZK") {
-            curId = 463
-            currencyName = "CZK"
-            curScale = 100
-        } else if text.contains("SEK") {
-            curId = 464
-            currencyName = "SEK"
-            curScale = 10
-        } else if text.contains("CHF") {
-            curId = 426
-            currencyName = "CHF"
-        } else if text.contains("XAU") {
-            curId = 0
-            currencyName = "XAU"
-        } else if text.contains("XAG") {
-            curId = 1
-            currencyName = "XAG"
-        } else if text.contains("XPT") {
-            curId = 2
-            currencyName = "XPT"
-        } else if text.contains("XPD") {
-            curId = 3
-            currencyName = "XPD"
-        } else if text.contains("BTC") {
-            currencyName = "BTC"
+
+        // Маппинг по коду валюты/металла/крипты (оставить как есть)
+        switch code {
+        case "AUD": curId = 440
+        case "AMD": curId = 510; curScale = 1000
+        case "BGN": curId = 441
+        case "BRL": curId = 514; curScale = 10
+        case "UAH": curId = 449; curScale = 100
+        case "DKK": curId = 450; curScale = 10
+        case "AED": curId = 513; curScale = 10
+        case "USD": curId = 431
+        case "VND": curId = 512; curScale = 100000
+        case "EUR": curId = 451
+        case "PLN": curId = 452; curScale = 10
+        case "JPY": curId = 508; curScale = 100
+        case "INR": curId = 511; curScale = 100
+        case "IRR": curId = 461; curScale = 100000
+        case "ISK": curId = 453; curScale = 100
+        case "CAD": curId = 371
+        case "CNY": curId = 462; curScale = 10
+        case "KWD": curId = 394
+        case "MDL": curId = 454; curScale = 10
+        case "NZD": curId = 448
+        case "NOK": curId = 455; curScale = 10
+        case "RUB": curId = 456; curScale = 100
+        case "XDR": curId = 457
+        case "SGD": curId = 421
+        case "KGS": curId = 458; curScale = 100
+        case "KZT": curId = 459; curScale = 1000
+        case "TRY": curId = 460; curScale = 10
+        case "GBP": curId = 429
+        case "CZK": curId = 463; curScale = 100
+        case "SEK": curId = 464; curScale = 10
+        case "CHF": curId = 426
+        case "XAU": curId = 0
+        case "XAG": curId = 1
+        case "XPT": curId = 2
+        case "XPD": curId = 3
+        case "BTC":
+            isCrypto = true
             currencyFullName = "bitcoin"
+        case "ETH":
             isCrypto = true
-        } else if text.contains("ETH") {
-            currencyName = "ETH"
             currencyFullName = "ethereum"
-            isCrypto = true
+        default:
+            break
         }
         
-        if curId > 370 && curId < 514 {
+        if curId > 370 && curId < 515 {
             let chartView = ChartScreenForCurrency(curScale: curScale, curId: curId, currencyName: currencyName)
             let chartVC = UIHostingController(rootView: chartView)
             navigationController?.pushViewController(chartVC, animated: true)
-        } else if curId >= 0 && curId <= 4 && !isCrypto {
+        } else if (0...4).contains(curId) && !isCrypto {
             let chartView = ChartScreenForMetals(curId: curId, currencyName: currencyName)
             let chartVC = UIHostingController(rootView: chartView)
             navigationController?.pushViewController(chartVC, animated: true)
@@ -317,6 +317,7 @@ extension ExchangeRatesViewController: UITableViewDelegate {
     }
 }
 
+// MARK: - Search Controller
 extension ExchangeRatesViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
         guard let text = searchController.searchBar.text, !text.isEmpty else {
@@ -324,7 +325,6 @@ extension ExchangeRatesViewController: UISearchResultsUpdating {
             tableView.reloadData()
             return
         }
-
         filteredRates = rates.filter {
             $0.name.lowercased().contains(text.lowercased()) ||
             $0.fullName.lowercased().contains(text.lowercased())
@@ -332,3 +332,4 @@ extension ExchangeRatesViewController: UISearchResultsUpdating {
         tableView.reloadData()
     }
 }
+

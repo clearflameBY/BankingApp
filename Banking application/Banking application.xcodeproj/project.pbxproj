@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C634EEF12E657AFD0053EE26 /* FullSDK in Frameworks */ = {isa = PBXBuildFile; productRef = C634EEF02E657AFD0053EE26 /* FullSDK */; };
+		C688921B2E817E9A00A5B75D /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = C688921A2E817E9A00A5B75D /* SnapKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,7 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C634EEF12E657AFD0053EE26 /* FullSDK in Frameworks */,
+				C688921B2E817E9A00A5B75D /* SnapKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -83,7 +83,7 @@
 			);
 			name = "Banking application";
 			packageProductDependencies = (
-				C634EEF02E657AFD0053EE26 /* FullSDK */,
+				C688921A2E817E9A00A5B75D /* SnapKit */,
 			);
 			productName = "Banking application";
 			productReference = C62BE92A2E3E203F00785D72 /* Banking application.app */;
@@ -101,6 +101,7 @@
 				TargetAttributes = {
 					C62BE9292E3E203F00785D72 = {
 						CreatedOnToolsVersion = 16.4;
+						LastSwiftMigration = 2600;
 					};
 				};
 			};
@@ -115,7 +116,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				C637B1512E5B9968006632F3 /* XCRemoteSwiftPackageReference "Moya" */,
-				C634EEEF2E657AFD0053EE26 /* XCRemoteSwiftPackageReference "mobile-sdk-full-swift-package" */,
+				C68892192E817E9900A5B75D /* XCRemoteSwiftPackageReference "SnapKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C62BE92B2E3E203F00785D72 /* Products */;
@@ -153,6 +154,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = PMRNR7N3WD;
@@ -171,6 +173,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "None.Banking-application";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -181,6 +184,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = PMRNR7N3WD;
@@ -351,14 +355,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		C634EEEF2E657AFD0053EE26 /* XCRemoteSwiftPackageReference "mobile-sdk-full-swift-package" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/2gis/mobile-sdk-full-swift-package";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.8.0;
-			};
-		};
 		C637B1512E5B9968006632F3 /* XCRemoteSwiftPackageReference "Moya" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Moya/Moya";
@@ -367,13 +363,21 @@
 				minimumVersion = 15.0.3;
 			};
 		};
+		C68892192E817E9900A5B75D /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SnapKit/SnapKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.7.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		C634EEF02E657AFD0053EE26 /* FullSDK */ = {
+		C688921A2E817E9A00A5B75D /* SnapKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = C634EEEF2E657AFD0053EE26 /* XCRemoteSwiftPackageReference "mobile-sdk-full-swift-package" */;
-			productName = FullSDK;
+			package = C68892192E817E9900A5B75D /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

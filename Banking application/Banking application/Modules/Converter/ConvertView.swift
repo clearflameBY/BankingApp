@@ -8,9 +8,28 @@ import UIKit
 
 class ConverterView: UIView {
     
+    let historyButton : UIButton = {
+        let historyButton = UIButton()
+        var config = UIButton.Configuration.filled()
+        config.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20)
+        config.baseBackgroundColor = .systemYellow
+        historyButton.configuration = config
+        historyButton.translatesAutoresizingMaskIntoConstraints = false
+        historyButton.setTitleColor(.black, for: .normal)
+        historyButton.setTitle("История конверсий", for: .normal)
+        historyButton.layer.borderColor = UIColor.black.cgColor
+        historyButton.layer.borderWidth = 1
+        historyButton.layer.cornerRadius = 8
+        return historyButton
+    }()
+    
     let swapButton: UIButton = {
         let button = UIButton()
-        button.setTitleColor(.red, for: .normal)
+        var config = UIButton.Configuration.filled()
+        config.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20)
+        config.baseBackgroundColor = .white
+        button.configuration = config
+        button.setTitleColor(.black, for: .normal)
         button.setTitle("Поменять местами", for: .normal)
         button.layer.borderColor = UIColor.black.cgColor
         button.layer.borderWidth = 1
@@ -47,6 +66,7 @@ class ConverterView: UIView {
     let labelResult: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "0.00"
         return label
     }()
     
@@ -109,11 +129,15 @@ class ConverterView: UIView {
         stack2.axis = .vertical
         stack2.translatesAutoresizingMaskIntoConstraints = false
         
+        addSubview(historyButton)
         addSubview(swapButton)
         addSubview(stack1)
         addSubview(stack2)
         
         NSLayoutConstraint.activate([
+            historyButton.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 5),
+            historyButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -5),
+            
             swapButton.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 250),
             swapButton.centerXAnchor.constraint(equalTo: centerXAnchor),
             
