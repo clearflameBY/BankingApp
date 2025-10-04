@@ -71,7 +71,6 @@ final class MapView: UIView {
         addSubview(scrollView)
         mapView.addSubview(locationButton)
         scrollView.addSubview(stackView)
-
         
         NSLayoutConstraint.activate([
             searchBar.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),

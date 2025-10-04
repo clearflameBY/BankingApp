@@ -2,7 +2,7 @@
 //  MapViewController.swift
 //  Banking application
 //
-//  Переведено на Google Places API
+// 
 //
 
 import UIKit
@@ -10,15 +10,15 @@ import MapKit
 
 // MARK: - MapViewController
 
-class MapViewController: UIViewController, UISearchResultsUpdating, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, CLLocationManagerDelegate {
+class MapViewController: UIViewController {
     
     private let locationManager = CLLocationManager()
     private let customView = MapView()
     private let service = ServiceForPoints()
     
-    var suggestions: [GooglePlaceSuggestion] = []
+    private var suggestions: [GooglePlaceSuggestion] = []
     private var places: [GoogleATMPlace] = []
-    private let googleApiKey = "AIzaSyCQ3rPW1TAZX1VDjzlT7ichtTaNeIeeOGw"
+    static let googleApiKey = "AIzaSyCQ3rPW1TAZX1VDjzlT7ichtTaNeIeeOGw"
     
     override func loadView() {
         view = customView
@@ -50,19 +50,6 @@ class MapViewController: UIViewController, UISearchResultsUpdating, UITableViewD
         fetchATMs()
     }
     
-    func updateSearchResults(for searchController: UISearchController) {
-        guard let query = searchController.searchBar.text, !query.isEmpty else {
-            suggestions.removeAll()
-            customView.tableView.isHidden = true
-            customView.tableView.reloadData()
-            return
-        }
-        
-        service.fetchSuggestions(query: query) { items in
-            print(items)
-        }
-    }
-    
     private func centerOnUser() {
         if let location = locationManager.location?.coordinate {
             let region = MKCoordinateRegion(center: location, latitudinalMeters: 500, longitudinalMeters: 500)
@@ -71,7 +58,6 @@ class MapViewController: UIViewController, UISearchResultsUpdating, UITableViewD
     }
     
     private func setupLocation() {
-        locationManager.delegate = self
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
         customView.mapView.showsUserLocation = true
@@ -83,7 +69,7 @@ class MapViewController: UIViewController, UISearchResultsUpdating, UITableViewD
         let coordinate = locationManager.location?.coordinate ?? defaultLocation
         
         let radius = 2000 // метров
-        let urlString = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=\(coordinate.latitude),\(coordinate.longitude)&radius=\(radius)&type=atm&key=\(googleApiKey)&language=ru"
+        let urlString = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=\(coordinate.latitude),\(coordinate.longitude)&radius=\(radius)&type=bank&key=\(MapViewController.googleApiKey)&language=ru"
         
         guard let url = URL(string: urlString) else { return }
         
@@ -142,7 +128,15 @@ class MapViewController: UIViewController, UISearchResultsUpdating, UITableViewD
         }
     }
     
-    // MARK: - Search
+    @objc private func cardTapped(_ sender: UIButton) {
+        let place = places[sender.tag]
+        let coord = CLLocationCoordinate2D(latitude: place.geometry.location.lat, longitude: place.geometry.location.lng)
+        customView.mapView.setCenter(coord, animated: false)
+    }
+}
+
+extension MapViewController: UISearchBarDelegate  {
+    
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchText.isEmpty {
             suggestions.removeAll()
@@ -159,28 +153,24 @@ class MapViewController: UIViewController, UISearchResultsUpdating, UITableViewD
             }
         }
     }
-    
-    @objc private func cardTapped(_ sender: UIButton) {
-        let place = places[sender.tag]
-        let coord = CLLocationCoordinate2D(latitude: place.geometry.location.lat, longitude: place.geometry.location.lng)
-        customView.mapView.setCenter(coord, animated: false)
-    }
 }
 
-// MARK: - MKMapViewDelegate
 extension MapViewController: MKMapViewDelegate {
+    
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
         guard let annotation = view.annotation,
               let index = places.firstIndex(where: {
                   $0.geometry.location.lat == annotation.coordinate.latitude &&
                   $0.geometry.location.lng == annotation.coordinate.longitude
               }) else { return }
+        
         let xOffset = CGFloat(index) * 210 // ширина карточки + spacing
         customView.scrollView.setContentOffset(CGPoint(x: xOffset, y: 0), animated: true)
     }
 }
 
-extension MapViewController {
+extension MapViewController: UITableViewDataSource {
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return suggestions.count
     }
@@ -190,12 +180,15 @@ extension MapViewController {
         cell.textLabel?.text = suggestions[indexPath.row].description
         return cell
     }
+}
+
+extension MapViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let suggestion = suggestions[indexPath.row]
         tableView.deselectRow(at: indexPath, animated: true)
+        let suggestion = suggestions[indexPath.row]
 
-        service.fetchPlaceDetails(placeID: suggestion.place_id) { [weak self] placeDetails in
+        service.fetchPlaceDetails(placeID: suggestion.placeID) { [weak self] placeDetails in
             DispatchQueue.main.async {
                 guard let self = self, let placeDetails = placeDetails else { return }
                 
@@ -210,7 +203,7 @@ extension MapViewController {
                 let annotation = MKPointAnnotation()
                 annotation.coordinate = coordinate
                 annotation.title = placeDetails.name
-                annotation.subtitle = placeDetails.formatted_address
+                annotation.subtitle = placeDetails.formattedAddress
                 self.customView.mapView.addAnnotation(annotation)
                 
                 // ✅ Скрываем список подсказок
@@ -220,8 +213,11 @@ extension MapViewController {
             }
         }
     }
+}
+
+extension MapViewController: CLLocationManagerDelegate {
     
-    // MARK: - CLLocationManagerDelegate (если нужно использовать)
+    // MARK: (если нужно использовать)
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         // Можно автоматически центрировать на пользователе при старте
     }

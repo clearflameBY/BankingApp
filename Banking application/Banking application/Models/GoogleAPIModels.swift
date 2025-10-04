@@ -13,7 +13,12 @@ struct GoogleAutocompleteResponse: Codable {
 
 struct GooglePlaceSuggestion: Codable {
     let description: String
-    let place_id: String
+    let placeID: String
+    
+    enum CodingKeys: String, CodingKey {
+        case placeID = "place_id"
+        case description = "description"
+    }
 }
 
 struct GoogleNearbyResponse: Codable {
@@ -22,9 +27,16 @@ struct GoogleNearbyResponse: Codable {
 
 struct GoogleATMPlace: Codable {
     let name: String?
-    let place_id: String
+    let placeID: String
     let geometry: GoogleGeometry
     let vicinity: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case name = "name"
+        case placeID = "place_id"
+        case geometry = "geometry"
+        case vicinity = "vicinity"
+    }
 }
 
 struct GoogleGeometry: Codable {
@@ -42,6 +54,12 @@ struct GoogleDetailsResponse: Codable {
 
 struct GooglePlaceDetails: Codable {
     let name: String
-    let formatted_address: String?
+    let formattedAddress: String?
     let geometry: GoogleGeometry
+    
+    enum CodingKeys: String, CodingKey {
+        case name = "name"
+        case formattedAddress = "formatted_address"
+        case geometry = "geometry"
+    }
 }
