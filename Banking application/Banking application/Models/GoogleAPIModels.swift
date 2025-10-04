@@ -22,15 +22,15 @@ struct GooglePlaceSuggestion: Codable {
 }
 
 struct GoogleNearbyResponse: Codable {
-    let results: [GoogleATMPlace]
+    let results: [GooglePlace]
 }
 
-struct GoogleATMPlace: Codable {
+struct GooglePlace: Codable {
     let name: String?
     let placeID: String
     let geometry: GoogleGeometry
     let vicinity: String?
-    
+
     enum CodingKeys: String, CodingKey {
         case name = "name"
         case placeID = "place_id"
@@ -63,3 +63,4 @@ struct GooglePlaceDetails: Codable {
         case geometry = "geometry"
     }
 }
+
