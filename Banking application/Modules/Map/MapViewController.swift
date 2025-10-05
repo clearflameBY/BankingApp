@@ -1,21 +1,31 @@
 //
-//  MapViewComtroller.swift
+//  MapViewController.swift
 //  Banking application
 //
-//  Created by Илья Степаненко on 2.08.25.
+// 
 //
+
 import UIKit
 import MapKit
-import CoreLocation
 
-class MapViewController: UIViewController, UISearchResultsUpdating, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, CLLocationManagerDelegate {
+// MARK: - MapViewController
+
+class MapViewController: UIViewController {
     
     private let locationManager = CLLocationManager()
     private let customView = MapView()
+    private let service = ServiceForPoints()
     
-    var suggestions: [DgisSuggestItem] = []
-    private var places: [DgisPlace] = [] // Модель банкоматов
-    private let apiKey = "666718af-29db-461a-967f-9b0cb1cc20e5"
+    private var suggestions: [GooglePlaceSuggestion] = []
+    private var placesATMs: [GooglePlace] = []
+    private var placesBanks: [GooglePlace] = []
+    private var places: [GooglePlace] = []
+    static let googleApiKey = "AIzaSyCQ3rPW1TAZX1VDjzlT7ichtTaNeIeeOGw"
+    private let defaultLocation = CLLocationCoordinate2D(latitude: 53.90454, longitude: 27.56152) // Минск, по умолчанию
+    private var coordinate: CLLocationCoordinate2D {
+        locationManager.location?.coordinate ?? defaultLocation
+    }
+    private let radius = 2000 // метров
     
     override func loadView() {
         view = customView
@@ -24,10 +34,14 @@ class MapViewController: UIViewController, UISearchResultsUpdating, UITableViewD
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        
+        customView.tableView.isHidden = true
         let centerAction = UIAction(handler: { _ in
             self.centerOnUser()
         })
+        
+        let recognizerHideKeyboard = UITapGestureRecognizer(target: customView, action: #selector(customView.endEditing))
+        recognizerHideKeyboard.cancelsTouchesInView = false
+        customView.addGestureRecognizer(recognizerHideKeyboard)
         
         customView.locationButton.addAction(centerAction, for: .touchUpInside)
 
@@ -41,19 +55,7 @@ class MapViewController: UIViewController, UISearchResultsUpdating, UITableViewD
                 
         setupLocation()
         fetchATMs()
-    }
-    
-    func updateSearchResults(for searchController: UISearchController) {
-        guard let query = searchController.searchBar.text, !query.isEmpty else {
-            suggestions.removeAll()
-            customView.tableView.isHidden = true
-            customView.tableView.reloadData()
-            return
-        }
-        
-        fetchSuggestions(query: query) { items in
-            print(items) // здесь уже массив DgisSuggestItem
-        }
+        fetchBanks()
     }
     
     private func centerOnUser() {
@@ -64,16 +66,14 @@ class MapViewController: UIViewController, UISearchResultsUpdating, UITableViewD
     }
     
     private func setupLocation() {
-        locationManager.delegate = self
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
         customView.mapView.showsUserLocation = true
     }
     
     private func fetchATMs() {
-        let query = "Банкомат"
-        let fields = "items.point,items.address"
-        let urlString = "https://catalog.api.2gis.com/3.0/items?q=\(query)&fields=\(fields)&key=\(apiKey)"
+
+        let urlString = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=\(coordinate.latitude),\(coordinate.longitude)&radius=\(radius)&type=atm&key=\(MapViewController.googleApiKey)&language=ru"
         
         guard let url = URL(string: urlString) else { return }
         
@@ -84,9 +84,39 @@ class MapViewController: UIViewController, UISearchResultsUpdating, UITableViewD
             }
             guard let data = data else { return }
             do {
-                let response = try JSONDecoder().decode(DgisResponse.self, from: data)
+                let response = try JSONDecoder().decode(GoogleNearbyResponse.self, from: data)
                 DispatchQueue.main.async {
-                    self?.places = response.result.items
+                    self?.placesATMs = response.results
+                    self?.addAnnotations()
+                    self?.setupScrollCards()
+                }
+//                if let string = String(data: data, encoding: .utf8) {
+//                    print("Полученные данные:\n\(string)")
+//                } else {
+//                    print("Не удалось преобразовать данные в строку")
+//                }
+            } catch {
+                print("Ошибка парсинга:", error)
+            }
+        }.resume()
+    }
+    
+    private func fetchBanks() {
+
+        let urlString = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=\(coordinate.latitude),\(coordinate.longitude)&radius=\(radius)&type=bank&key=\(MapViewController.googleApiKey)&language=ru"
+        
+        guard let url = URL(string: urlString) else { return }
+        
+        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
+            if let error = error {
+                print("Ошибка запроса:", error)
+                return
+            }
+            guard let data = data else { return }
+            do {
+                let response = try JSONDecoder().decode(GoogleNearbyResponse.self, from: data)
+                DispatchQueue.main.async {
+                    self?.placesBanks = response.results
                     self?.addAnnotations()
                     self?.setupScrollCards()
                 }
@@ -97,27 +127,61 @@ class MapViewController: UIViewController, UISearchResultsUpdating, UITableViewD
     }
     
     private func addAnnotations() {
-        for place in places {
+        customView.mapView.removeAnnotations(customView.mapView.annotations)
+        for place in placesATMs {
             let annotation = MKPointAnnotation()
-            annotation.title = "Банкомат"
-            annotation.subtitle = place.address_name
-            annotation.coordinate = CLLocationCoordinate2D(latitude: place.point.lat, longitude: place.point.lon)
+            annotation.title = place.name
+            annotation.subtitle = place.vicinity
+            annotation.coordinate = CLLocationCoordinate2D(latitude: place.geometry.location.lat, longitude: place.geometry.location.lng)
             customView.mapView.addAnnotation(annotation)
         }
-        if let first = places.first {
-            customView.mapView.setRegion(MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: first.point.lat, longitude: first.point.lon),
-                                                 latitudinalMeters: 2000,
-                                                 longitudinalMeters: 2000), animated: true)
+        if let first = placesATMs.first {
+            customView.mapView.setRegion(
+                MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: first.geometry.location.lat, longitude: first.geometry.location.lng),
+                    latitudinalMeters: 2000,
+                    longitudinalMeters: 2000
+                ), animated: true)
+        }
+        
+        for place in placesBanks {
+            let annotation = MKPointAnnotation()
+            annotation.title = place.name
+            annotation.subtitle = place.vicinity
+            annotation.coordinate = CLLocationCoordinate2D(latitude: place.geometry.location.lat, longitude: place.geometry.location.lng)
+            customView.mapView.addAnnotation(annotation)
+        }
+        if let first = placesBanks.first {
+            customView.mapView.setRegion(
+                MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: first.geometry.location.lat, longitude: first.geometry.location.lng),
+                    latitudinalMeters: 2000,
+                    longitudinalMeters: 2000
+                ), animated: true)
         }
     }
     
     private func setupScrollCards() {
         customView.stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
-        for (index, place) in places.enumerated() {
+        
+        for (index, place) in placesATMs.enumerated() {
             let card = UIButton()
-            card.backgroundColor = .systemGray5
+            card.backgroundColor = .systemRed
             card.layer.cornerRadius = 10
-            card.setTitle(place.address_name, for: .normal)
+            card.setTitle(place.vicinity ?? place.name ?? "ATM", for: .normal)
+            card.titleLabel?.font = .systemFont(ofSize: 14)
+            card.titleLabel?.numberOfLines = 2
+            card.tag = index
+            card.addTarget(self, action: #selector(cardTapped(_:)), for: .touchUpInside)
+            card.widthAnchor.constraint(equalToConstant: 200).isActive = true
+            customView.stackView.addArrangedSubview(card)
+        }
+        
+        for (index, place) in placesBanks.enumerated() {
+            let card = UIButton()
+            card.backgroundColor = .systemBlue
+            card.layer.cornerRadius = 10
+            card.setTitle(place.vicinity ?? place.name ?? "Bank", for: .normal)
             card.titleLabel?.font = .systemFont(ofSize: 14)
             card.titleLabel?.numberOfLines = 2
             card.tag = index
@@ -127,134 +191,151 @@ class MapViewController: UIViewController, UISearchResultsUpdating, UITableViewD
         }
     }
     
-    // MARK: - Search
+    @objc private func cardTapped(_ sender: UIButton) {
+        places = placesBanks + placesATMs
+        let place = places[sender.tag]
+        let coord = CLLocationCoordinate2D(latitude: place.geometry.location.lat, longitude: place.geometry.location.lng)
+        customView.mapView.setCenter(coord, animated: false)
+        
+        service.fetchPlaceDetails(placeID: place.placeID) { [weak self] details in
+            DispatchQueue.main.async {
+                guard let details = details else { return }
+                self?.showPlaceDetailsScreen(details: details)
+            }
+        }
+    }
+    
+    private func showPlaceDetailsScreen(details: GooglePlaceDetails) {
+        let vc = PlaceDetailsViewController(details: details)
+        navigationController?.pushViewController(vc, animated: true)
+    }
+}
+
+extension MapViewController: UISearchBarDelegate  {
+    
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchText.isEmpty {
             suggestions.removeAll()
             customView.tableView.reloadData()
             customView.tableView.isHidden = true
         } else {
-            fetchSuggestions(query: searchText) { [weak self] newSuggestions in
+            service.fetchSuggestions(query: searchText) { [weak self] newSuggestions in
                 DispatchQueue.main.async {
                     self?.suggestions = newSuggestions
                     self?.customView.tableView.reloadData()
+                    self?.customView.tableView.isHidden = false
                     self?.customView.tableView.isHidden = newSuggestions.isEmpty
                 }
             }
         }
-     }
-    
-    func fetchPlaceDetails(id: String, completion: @escaping (DgisPlace?) -> Void) {
-        
-        let urlString = "https://catalog.api.2gis.com/3.0/items?id=\(id)&fields=items.point,items.name&key=\(apiKey)"
-        
-        guard let url = URL(string: urlString) else {
-            completion(nil)
-            return
-        }
-        
-        URLSession.shared.dataTask(with: url) { data, _, error in
-            guard let data = data, error == nil else {
-                completion(nil)
-                return
-            }
-            do {
-                let response = try JSONDecoder().decode(DgisItemResponse.self, from: data)
-                completion(response.result.items.first)
-            } catch {
-                print("Ошибка парсинга места:", error)
-                completion(nil)
-            }
-        }.resume()
-    }
-    
-    @objc private func cardTapped(_ sender: UIButton) {
-        let place = places[sender.tag]
-        let coord = CLLocationCoordinate2D(latitude: place.point.lat, longitude: place.point.lon)
-        customView.mapView.setCenter(coord, animated: true)
     }
 }
 
-// MARK: - MKMapViewDelegate
 extension MapViewController: MKMapViewDelegate {
+    
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        // Не перекрашивать пользовательский "синий кружок"
+        if annotation is MKUserLocation { return nil }
+
+        let annotationView = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: "something")
+
+        // Найдём объект в массиве placesATMs по координате
+        if placesATMs.first(where: {
+            $0.geometry.location.lat == annotation.coordinate.latitude &&
+            $0.geometry.location.lng == annotation.coordinate.longitude
+        }) != nil {
+                annotationView.markerTintColor = .systemRed
+            }
+        
+        // Найдём объект в массиве placesBanks по координате
+        if placesBanks.first(where: {
+            $0.geometry.location.lat == annotation.coordinate.latitude &&
+            $0.geometry.location.lng == annotation.coordinate.longitude
+        }) != nil {
+                annotationView.markerTintColor = .systemBlue
+            }
+        
+        return annotationView
+    }
+    
+    
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+        
+        places = placesATMs + placesBanks
+        
         guard let annotation = view.annotation,
-              let index = places.firstIndex(where: { $0.address_name == annotation.subtitle }) else { return }
+              let index = places.firstIndex(where: {
+                  $0.geometry.location.lat == annotation.coordinate.latitude &&
+                  $0.geometry.location.lng == annotation.coordinate.longitude
+              }) else { return }
+        
         let xOffset = CGFloat(index) * 210 // ширина карточки + spacing
         customView.scrollView.setContentOffset(CGPoint(x: xOffset, y: 0), animated: true)
-    }
-}
-
-extension MapViewController {
-    func fetchSuggestions(query: String, completion: @escaping ([DgisSuggestItem]) -> Void) {
         
-        let urlString = "https://catalog.api.2gis.com/3.0/suggests?q=\(query)&key=\(apiKey)"
-        
-        guard let url = URL(string: urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "") else {
-            completion([])
-            return
+        // Загружаем подробности и открываем экран с режимом работы
+        let place = places[index]
+        service.fetchPlaceDetails(placeID: place.placeID) { [weak self] details in
+            DispatchQueue.main.async {
+                guard let details = details else { return }
+                self?.showPlaceDetailsScreen(details: details)
+            }
         }
-
-        URLSession.shared.dataTask(with: url) { data, _, error in
-            guard let data = data, error == nil else {
-                completion([])
-                return
-            }
-            do {
-                let response = try JSONDecoder().decode(DgisSuggestResponse.self, from: data)
-                completion(response.result!.items)
-            } catch {
-                print("Ошибка парсинга подсказок:", error)
-                completion([])
-            }
-        }.resume()
     }
 }
 
-extension MapViewController {
+extension MapViewController: UITableViewDataSource {
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return suggestions.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = suggestions[indexPath.row].name
+        cell.textLabel?.text = suggestions[indexPath.row].description
         return cell
     }
+}
+
+extension MapViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let suggestion = suggestions[indexPath.row]
         tableView.deselectRow(at: indexPath, animated: true)
         
-        guard let id = suggestion.id else {
-            print("Нет ID для подсказки")
-            return
-        }
-        
-        fetchPlaceDetails(id: id) { [weak self] place in
+        let suggestion = suggestions[indexPath.row]
+
+        service.fetchPlaceDetails(placeID: suggestion.placeID) { [weak self] placeDetails in
             DispatchQueue.main.async {
-                guard let self = self, let place = place else { return }
+                guard let self = self, let placeDetails = placeDetails else { return }
                 
                 // Перемещаем карту на найденную точку
-                let coordinate = CLLocationCoordinate2D(latitude: place.point.lat, longitude: place.point.lon)
+                let coordinate = CLLocationCoordinate2D(
+                    latitude: placeDetails.geometry.location.lat,
+                    longitude: placeDetails.geometry.location.lng)
                 let region = MKCoordinateRegion(center: coordinate, latitudinalMeters: 1000, longitudinalMeters: 1000)
                 self.customView.mapView.setRegion(region, animated: true)
                 
                 // Добавляем маркер
                 let annotation = MKPointAnnotation()
                 annotation.coordinate = coordinate
-                annotation.title = place.name
+                annotation.title = placeDetails.name
+                annotation.subtitle = placeDetails.formattedAddress
                 self.customView.mapView.addAnnotation(annotation)
                 
                 // ✅ Скрываем список подсказок
                 self.suggestions.removeAll()
                 tableView.reloadData()
                 tableView.isHidden = true
+                
+                // Открываем экран с режимом работы
+                self.showPlaceDetailsScreen(details: placeDetails)
             }
         }
     }
+}
+
+extension MapViewController: CLLocationManagerDelegate {
     
-    // MARK: - CLLocationManagerDelegate (опционально для слежки)
+    // MARK: (если нужно использовать)
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         // Можно автоматически центрировать на пользователе при старте
     }

@@ -7,38 +7,103 @@
 
 import UIKit
 
-class ConverterViewController: UIViewController {
-    private let amountField = UITextField()
-    private let resultLabel = UILabel()
+final class ConverterViewController: UIViewController {
+    
+    private let service = CurrencyService()
+    static let customView = ConverterView()
+    private let calculateService = CalculateService()
+    var storageForVariable = ""
+        
+    override func loadView() {
+        view = ConverterViewController.customView
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Конвертер"
-        view.backgroundColor = .systemBackground
         
-        setupUI()
+        let leftLabelTapped = UIAction(handler: { _ in
+            ConverterViewController.customView.tableFrom.isHidden.toggle()
+        })
+        let rightLabelTapped = UIAction(handler: { _ in
+            ConverterViewController.customView.tableTo.isHidden.toggle()
+        })
+        let calculateConversion = UIAction(handler: { _ in
+            self.calculateService.calculateConversionForConverter()
+        })
+        let openHistory = UIAction(handler: { _ in
+            self.present(ConversionsHistoryViewController(), animated: true)
+        })
+        let swapCurrency = UIAction(handler: { _ in
+            guard ConverterViewController.customView.buttonFrom.titleLabel?.text != "Choose currency from:",
+                  ConverterViewController.customView.buttonTo.titleLabel?.text != "Choose currency to:" else { return }
+            
+            self.storageForVariable = ConverterViewController.customView.buttonFrom.titleLabel?.text ?? ""
+            ConverterViewController.customView.buttonFrom.setTitle(ConverterViewController.customView.buttonTo.titleLabel?.text, for: .normal)
+            ConverterViewController.customView.buttonTo.setTitle(self.storageForVariable, for: .normal)
+            
+            self.calculateService.calculateConversionForConverter()
+        })
+        let recognizerHideKeyboard = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
+        recognizerHideKeyboard.cancelsTouchesInView = false
+        view.addGestureRecognizer(recognizerHideKeyboard)
+        
+        ConverterViewController.customView.buttonFrom.addAction(leftLabelTapped, for: .touchUpInside)
+        ConverterViewController.customView.buttonTo.addAction(rightLabelTapped, for: .touchUpInside)
+        ConverterViewController.customView.swapButton.addAction(swapCurrency, for: .touchUpInside)
+        ConverterViewController.customView.historyButton.addAction(openHistory, for: .touchUpInside)
+        ConverterViewController.customView.textField.addAction(calculateConversion, for: .editingChanged)
+        
+        ConverterViewController.customView.tableFrom.delegate = self
+        ConverterViewController.customView.tableFrom.dataSource = self
+        ConverterViewController.customView.tableTo.delegate = self
+        ConverterViewController.customView.tableTo.dataSource = self
     }
     
-    private func setupUI() {
-        amountField.placeholder = "Введите сумму"
-        amountField.borderStyle = .roundedRect
-        amountField.keyboardType = .decimalPad
-        
-        resultLabel.text = "Результат: 0"
-        resultLabel.textAlignment = .center
-        
-        let stack = UIStackView(arrangedSubviews: [amountField, resultLabel])
-        stack.axis = .vertical
-        stack.spacing = 16
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        
-        view.addSubview(stack)
-        
-        NSLayoutConstraint.activate([
-            stack.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            stack.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
-        ])
+    @objc
+    private func hideKeyboard() {
+        view.endEditing(true)
     }
 }
+
+extension ConverterViewController: UITableViewDelegate, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        DashboardViewController.currencyCodes.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        cell.selectionStyle = .default
+        cell.textLabel?.text = DashboardViewController.currencyCodes[indexPath.row]
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+        if tableView == ConverterViewController.customView.tableFrom {
+            ConverterViewController.customView.buttonFrom.setTitle(DashboardViewController.currencyCodes[indexPath.row], for: .normal)
+            ConverterViewController.customView.tableFrom.isHidden = true
+            
+            guard let title = ConverterViewController.customView.buttonTo.title(for: .normal),
+                  title != "Choose currency to:",
+                  ConverterViewController.customView.textField.text != "" else { return }
+            
+                    calculateService.calculateConversionForConverter()
+            
+        } else if tableView == ConverterViewController.customView.tableTo {
+            ConverterViewController.customView.buttonTo.setTitle(DashboardViewController.currencyCodes[indexPath.row], for: .normal)
+            ConverterViewController.customView.tableTo.isHidden = true
+            
+            guard let title = ConverterViewController.customView.buttonFrom.title(for: .normal),
+                  title != "Choose currency from:",
+                  ConverterViewController.customView.textField.text != "" else { return }
+            
+                    calculateService.calculateConversionForConverter()
+        }
+        
+    }
+}
+

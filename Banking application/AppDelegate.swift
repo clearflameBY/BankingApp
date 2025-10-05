@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import DGis
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {

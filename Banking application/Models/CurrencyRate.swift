@@ -6,7 +6,7 @@
 //
 import Foundation
 
-struct CurrencyRate: Decodable, Identifiable {
+struct CurrencyRate: Decodable, Identifiable, Equatable {
     let id = UUID()
     let date: String
     let curOfficialRate: Double

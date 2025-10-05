@@ -41,6 +41,7 @@ final class MapView: UIView {
         let view = UITableView()
         view.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.layer.cornerRadius = 10
         return view
     }()
     
@@ -65,12 +66,11 @@ final class MapView: UIView {
     
     private func setupUI() {
         addSubview(searchBar)
-        addSubview(tableView)
         addSubview(mapView)
+        addSubview(tableView)
         addSubview(scrollView)
         mapView.addSubview(locationButton)
         scrollView.addSubview(stackView)
-
         
         NSLayoutConstraint.activate([
             searchBar.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
@@ -83,10 +83,10 @@ final class MapView: UIView {
             tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
             tableView.heightAnchor.constraint(equalToConstant: 150),
             
-            mapView.topAnchor.constraint(equalTo: tableView.bottomAnchor),
+            mapView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
             mapView.leadingAnchor.constraint(equalTo: leadingAnchor),
             mapView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            mapView.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 0.5),
+            mapView.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 0.6),
             
             locationButton.trailingAnchor.constraint(equalTo: mapView.trailingAnchor, constant: -16),
             locationButton.bottomAnchor.constraint(equalTo: mapView.bottomAnchor),

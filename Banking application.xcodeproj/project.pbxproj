@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C634EEF12E657AFD0053EE26 /* FullSDK in Frameworks */ = {isa = PBXBuildFile; productRef = C634EEF02E657AFD0053EE26 /* FullSDK */; };
+		C688921B2E817E9A00A5B75D /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = C688921A2E817E9A00A5B75D /* SnapKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -15,7 +15,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		C62BE9C42E3E32E900785D72 /* Exceptions for "Banking application" folder in "Banking application" target */ = {
+		C65B80242E91A2E3006CCD38 /* Exceptions for "Banking application" folder in "Banking application" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -28,7 +28,7 @@
 		C62BE9BD2E3E32E900785D72 /* Banking application */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				C62BE9C42E3E32E900785D72 /* Exceptions for "Banking application" folder in "Banking application" target */,
+				C65B80242E91A2E3006CCD38 /* Exceptions for "Banking application" folder in "Banking application" target */,
 			);
 			path = "Banking application";
 			sourceTree = "<group>";
@@ -40,7 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C634EEF12E657AFD0053EE26 /* FullSDK in Frameworks */,
+				C688921B2E817E9A00A5B75D /* SnapKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,7 +72,7 @@
 			buildPhases = (
 				C62BE9262E3E203F00785D72 /* Sources */,
 				C62BE9272E3E203F00785D72 /* Frameworks */,
-				C62BE9282E3E203F00785D72 /* Resources */,
+				C65B801D2E91A0B8006CCD38 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -83,7 +83,7 @@
 			);
 			name = "Banking application";
 			packageProductDependencies = (
-				C634EEF02E657AFD0053EE26 /* FullSDK */,
+				C688921A2E817E9A00A5B75D /* SnapKit */,
 			);
 			productName = "Banking application";
 			productReference = C62BE92A2E3E203F00785D72 /* Banking application.app */;
@@ -97,10 +97,11 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1640;
-				LastUpgradeCheck = 1640;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					C62BE9292E3E203F00785D72 = {
 						CreatedOnToolsVersion = 16.4;
+						LastSwiftMigration = 2600;
 					};
 				};
 			};
@@ -115,7 +116,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				C637B1512E5B9968006632F3 /* XCRemoteSwiftPackageReference "Moya" */,
-				C634EEEF2E657AFD0053EE26 /* XCRemoteSwiftPackageReference "mobile-sdk-full-swift-package" */,
+				C68892192E817E9900A5B75D /* XCRemoteSwiftPackageReference "SnapKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C62BE92B2E3E203F00785D72 /* Products */;
@@ -128,7 +129,7 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		C62BE9282E3E203F00785D72 /* Resources */ = {
+		C65B801D2E91A0B8006CCD38 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -153,16 +154,19 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = PMRNR7N3WD;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Banking application/Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Ваше местоположение используется для отображения на карте";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 16;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -171,6 +175,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "None.Banking-application";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -181,16 +186,19 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = PMRNR7N3WD;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Banking application/Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Ваше местоположение используется для отображения на карте";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 16;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -263,6 +271,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -320,6 +329,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -349,14 +359,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		C634EEEF2E657AFD0053EE26 /* XCRemoteSwiftPackageReference "mobile-sdk-full-swift-package" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/2gis/mobile-sdk-full-swift-package";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.8.0;
-			};
-		};
 		C637B1512E5B9968006632F3 /* XCRemoteSwiftPackageReference "Moya" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Moya/Moya";
@@ -365,13 +367,21 @@
 				minimumVersion = 15.0.3;
 			};
 		};
+		C68892192E817E9900A5B75D /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SnapKit/SnapKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.7.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		C634EEF02E657AFD0053EE26 /* FullSDK */ = {
+		C688921A2E817E9A00A5B75D /* SnapKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = C634EEEF2E657AFD0053EE26 /* XCRemoteSwiftPackageReference "mobile-sdk-full-swift-package" */;
-			productName = FullSDK;
+			package = C68892192E817E9900A5B75D /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

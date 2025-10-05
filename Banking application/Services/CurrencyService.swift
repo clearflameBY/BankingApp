@@ -29,34 +29,56 @@ class CurrencyService {
                     completion(.success(rates))
                 }
             } catch {
-                DispatchQueue.main.async {
-                    completion(.failure(error))
-                }
+                completion(.failure(error))
             }
         }.resume()
     }
     
-    func fetchRatesForMetals(dayForMetalCurrencyString: String) {
+    func fetchRatesForMetals(dayForMetalCurrencyString: String, completion: @escaping (Result<[MetalModel], Error>) -> Void) {
         
-        let metalsURL = URL(string: "https://api.nbrb.by/bankingots/prices?startdate=\(dayForMetalCurrencyString)&endDate=\(dayForMetalCurrencyString)")!
+        let urlString = "https://api.nbrb.by/bankingots/prices?startdate=\(dayForMetalCurrencyString)&endDate=\(dayForMetalCurrencyString)"
+        guard let metalsURL = URL(string: urlString) else { return }
         
         URLSession.shared.dataTask(with: metalsURL) { data, _, error  in
             guard let data = data else { return }
+            
             do {
                 let metals = try JSONDecoder().decode([MetalModel].self, from: data)
-                
                 DispatchQueue.main.async {
-                    for metal in metals {
-                        let name = metal.metalId == 0 ? "Золото" : "Серебро"
-                        DashboardViewController.curenciesData.append("\(name): \(metal.value) BYN/грамм")
-                    }
-                    DashboardViewController.customView.rates.reloadData()
+                    completion(.success(metals))
                 }
             } catch {
-                print("Ошибка парсинга металлов:", error)
-                print("Ответ сервера:", String(data: data, encoding: .utf8) ?? "нет данных")
+                completion(.failure(error))
             }
         }.resume()
-      
+    }
+    
+    func fetchCryptoPrice(crypto: String, completion: @escaping (Double?) -> Void) {
+        let urlString = "https://api.coingecko.com/api/v3/simple/price?ids=\(crypto)&vs_currencies=usd"
+        guard let url = URL(string: urlString) else {
+            completion(nil)
+            return
+        }
+
+        URLSession.shared.dataTask(with: url) { data, _, error in
+            guard let data = data, error == nil else {
+                completion(nil)
+                return
+            }
+
+            do {
+                var price : Double? = nil
+                if crypto == "bitcoin" {
+                    let result = try JSONDecoder().decode(BitcoinPriceResponse.self, from: data)
+                    price = result.bitcoin["usd"]
+                } else if crypto == "ethereum" {
+                    let result = try JSONDecoder().decode(EthereumPriceResponse.self, from: data)
+                    price = result.ethereum["usd"]
+                }
+                completion(price)
+            } catch {
+                completion(nil)
+            }
+        }.resume()
     }
 }

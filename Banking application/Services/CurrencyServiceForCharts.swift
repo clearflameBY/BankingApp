@@ -43,4 +43,30 @@ class CurrencyServiceForCharts {
             }
         }.resume()
     }
+    
+    func fetchHistoryForCryptos(for coinID: String, completion: @escaping ([CryptosPricePoint]) -> Void) {
+        let urlString = "https://api.coingecko.com/api/v3/coins/\(coinID)/market_chart?vs_currency=usd&days=7"
+        guard let url = URL(string: urlString) else { return }
+
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            guard let data = data else { return }
+
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let prices = json["prices"] as? [[Any]] {
+                    let points = prices.compactMap { entry -> CryptosPricePoint? in
+                        guard let timestamp = entry[0] as? Double,
+                              let price = entry[1] as? Double else { return nil }
+                        let date = Date(timeIntervalSince1970: timestamp / 1000)
+                        return CryptosPricePoint(date: date, price: price)
+                    }
+                    DispatchQueue.main.async {
+                        completion(points)
+                    }
+                }
+            } catch {
+                print("Ошибка парсинга: \(error)")
+            }
+        }.resume()
+    }
 }
