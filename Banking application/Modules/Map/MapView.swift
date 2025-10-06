@@ -86,7 +86,7 @@ final class MapView: UIView {
             mapView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
             mapView.leadingAnchor.constraint(equalTo: leadingAnchor),
             mapView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            mapView.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 0.6),
+            mapView.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 0.65),
             
             locationButton.trailingAnchor.constraint(equalTo: mapView.trailingAnchor, constant: -16),
             locationButton.bottomAnchor.constraint(equalTo: mapView.bottomAnchor),

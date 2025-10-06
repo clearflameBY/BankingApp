@@ -21,6 +21,8 @@ class MapViewController: UIViewController {
     private var placesBanks: [GooglePlace] = []
     private var places: [GooglePlace] = []
     static let googleApiKey = "AIzaSyCQ3rPW1TAZX1VDjzlT7ichtTaNeIeeOGw"
+    static var isAlertShown: Bool = false
+
     private let defaultLocation = CLLocationCoordinate2D(latitude: 53.90454, longitude: 27.56152) // Минск, по умолчанию
     private var coordinate: CLLocationCoordinate2D {
         locationManager.location?.coordinate ?? defaultLocation
@@ -33,6 +35,7 @@ class MapViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         view.backgroundColor = .systemBackground
         customView.tableView.isHidden = true
         let centerAction = UIAction(handler: { _ in
@@ -206,8 +209,15 @@ class MapViewController: UIViewController {
     }
     
     private func showPlaceDetailsScreen(details: GooglePlaceDetails) {
-        let vc = PlaceDetailsViewController(details: details)
-        navigationController?.pushViewController(vc, animated: true)
+
+        let alertView = WorkSheduleAlert(frame: CGRect(x: 50, y: -150, width: self.view.frame.width - 100, height: 270), details: details)
+        view.addSubview(alertView)
+        
+        UIView.animate(withDuration: 0.3, animations: {
+            alertView.frame.origin.y = 100
+        })
+        
+        MapViewController.isAlertShown.toggle()
     }
 }
 

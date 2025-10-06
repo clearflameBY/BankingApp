@@ -2938,10 +2938,10 @@
             filePath = "Banking application/Modules/Map/MapViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "237"
-            endingLineNumber = "237"
-            landmarkName = "mapView(_:viewFor:)"
-            landmarkType = "7">
+            startingLineNumber = "247"
+            endingLineNumber = "247"
+            landmarkName = "MapViewController"
+            landmarkType = "21">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -2954,8 +2954,8 @@
             filePath = "Banking application/Modules/Map/MapViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "240"
-            endingLineNumber = "240"
+            startingLineNumber = "250"
+            endingLineNumber = "250"
             landmarkName = "mapView(_:viewFor:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2970,8 +2970,8 @@
             filePath = "Banking application/Modules/Map/MapViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "245"
-            endingLineNumber = "245"
+            startingLineNumber = "255"
+            endingLineNumber = "255"
             landmarkName = "mapView(_:viewFor:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2986,10 +2986,10 @@
             filePath = "Banking application/Modules/Map/MapViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "239"
-            endingLineNumber = "239"
-            landmarkName = "mapView(_:viewFor:)"
-            landmarkType = "7">
+            startingLineNumber = "249"
+            endingLineNumber = "249"
+            landmarkName = "MapViewController"
+            landmarkType = "21">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -3002,25 +3002,9 @@
             filePath = "Banking application/Modules/Map/MapViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "241"
-            endingLineNumber = "241"
+            startingLineNumber = "251"
+            endingLineNumber = "251"
             landmarkName = "mapView(_:viewFor:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "9C53BC08-20DA-4D03-87F4-8B98E53A3890"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Banking application/Modules/Map/MapViewController.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "210"
-            endingLineNumber = "210"
-            landmarkName = "showPlaceDetailsScreen(details:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -3034,8 +3018,8 @@
             filePath = "Banking application/Modules/Map/MapViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "202"
-            endingLineNumber = "202"
+            startingLineNumber = "205"
+            endingLineNumber = "205"
             landmarkName = "cardTapped(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3050,8 +3034,8 @@
             filePath = "Banking application/Modules/Map/MapViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "201"
-            endingLineNumber = "201"
+            startingLineNumber = "204"
+            endingLineNumber = "204"
             landmarkName = "cardTapped(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3066,8 +3050,8 @@
             filePath = "Banking application/Modules/Map/MapViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "200"
-            endingLineNumber = "200"
+            startingLineNumber = "203"
+            endingLineNumber = "203"
             landmarkName = "cardTapped(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3082,8 +3066,8 @@
             filePath = "Banking application/Modules/Map/MapViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "203"
-            endingLineNumber = "203"
+            startingLineNumber = "206"
+            endingLineNumber = "206"
             landmarkName = "cardTapped(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3108,7 +3092,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "6293A2F2-5BF1-48F8-BE37-069B56F2D2A0"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Banking application/Services/ServiceForPoints.swift"
@@ -3117,6 +3101,22 @@
             startingLineNumber = "14"
             endingLineNumber = "14"
             landmarkName = "fetchPlaceDetails(placeID:completion:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "B55A304D-7491-40DF-A6A5-56725FDAE362"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Banking application/Modules/Map/WorkSheduleAlert.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "56"
+            endingLineNumber = "56"
+            landmarkName = "init(frame:details:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

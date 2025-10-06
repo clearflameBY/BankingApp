@@ -77,7 +77,7 @@ class CurrencyService {
                 }
                 completion(price)
             } catch {
-                completion(nil)
+                print("Ошибка парсинга: \(error)")
             }
         }.resume()
     }

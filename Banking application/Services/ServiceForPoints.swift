@@ -9,7 +9,7 @@ import Foundation
 class ServiceForPoints {
         
     func fetchPlaceDetails(placeID: String, completion: @escaping (GooglePlaceDetails?) -> Void) {
-        // Запрашиваем ровно те поля, которые нужны (иначе opening_hours не вернётся)
+        // Запрашиваем ровно те поля, которые нужны
         let fields = "place_id,name,formatted_address,geometry,opening_hours,current_opening_hours"
         let urlString = "https://maps.googleapis.com/maps/api/place/details/json?place_id=\(placeID)&fields=\(fields)&key=\(MapViewController.googleApiKey)&language=ru"
         
@@ -20,9 +20,9 @@ class ServiceForPoints {
             do {
                 let response = try JSONDecoder().decode(GoogleDetailsResponse.self, from: data)
                 completion(response.result)
-                if let s = String(data: data, encoding: .utf8) {
-                    print("Ответ Details:\n\(s)")
-                }
+//                if let s = String(data: data, encoding: .utf8) {
+//                    print("Ответ Details:\n\(s)")
+//                }
             } catch {
                 print("Ошибка парсинга места:", error)
             }
