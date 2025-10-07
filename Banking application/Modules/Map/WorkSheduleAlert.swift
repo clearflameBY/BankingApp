@@ -60,6 +60,7 @@ class WorkSheduleAlert: UIView {
         
         let closeAction = UIAction(handler: { _ in
             self.removeAlertView()
+            MapViewController.isAlertShown = false
         })
         closeAlertButton.addAction(closeAction, for: .touchUpInside)
         
@@ -140,12 +141,12 @@ class WorkSheduleAlert: UIView {
     }
     
     private func removeAlertView() {
+        
         UIView.animate(withDuration: 0.3, animations: {
             self.frame.origin.y = -self.frame.height
         }) { _ in
             self.removeFromSuperview()
         }
-        MapViewController.isAlertShown.toggle()
     }
 }
 

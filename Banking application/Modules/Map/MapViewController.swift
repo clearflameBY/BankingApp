@@ -213,11 +213,14 @@ class MapViewController: UIViewController {
         let alertView = WorkSheduleAlert(frame: CGRect(x: 50, y: -150, width: self.view.frame.width - 100, height: 270), details: details)
         view.addSubview(alertView)
         
-        UIView.animate(withDuration: 0.3, animations: {
+        if !MapViewController.isAlertShown {
+            UIView.animate(withDuration: 0.3, animations: {
+                alertView.frame.origin.y = 100
+            })
+            MapViewController.isAlertShown = true
+        } else {
             alertView.frame.origin.y = 100
-        })
-        
-        MapViewController.isAlertShown.toggle()
+        }
     }
 }
 
