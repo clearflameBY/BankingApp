@@ -23,6 +23,8 @@ final class DashboardView: UIView {
         button.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .medium)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.tintColor = .red
+        button.layer.borderColor = UIColor.black.cgColor
+        button.layer.borderWidth = 1
         return button
      }()
     
@@ -32,15 +34,19 @@ final class DashboardView: UIView {
         button.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .medium)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.tintColor = .red
+        button.layer.borderColor = UIColor.black.cgColor
+        button.layer.borderWidth = 1
         return button
      }()
     
     let searchATMButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Быстрый поиск банкоматов", for: .normal)
+        button.setTitle("Поиск банкоматов", for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .medium)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.tintColor = .red
+        button.layer.borderColor = UIColor.black.cgColor
+        button.layer.borderWidth = 1
         return button
      }()
     
@@ -165,7 +171,7 @@ final class DashboardView: UIView {
             
             butttonsStack.topAnchor.constraint(equalTo: rates.bottomAnchor, constant: 5),
             butttonsStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
-            butttonsStack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            butttonsStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
             
             mainStack.topAnchor.constraint(equalTo: butttonsStack.bottomAnchor, constant: 5),
             mainStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),

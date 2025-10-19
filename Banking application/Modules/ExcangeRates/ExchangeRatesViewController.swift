@@ -184,13 +184,13 @@ class ExchangeRatesViewController: UIViewController {
     private func items(for section: exchangesTableSection) -> [CurrencyRate2] {
         switch section {
         case .favorites:
-            return filteredRates.filter { isFavorite(code: $0.name) }
+            return filteredRates.filter { isFavorite(code: $0.name) }.sorted(by: { $0.fullName < $1.fullName })
         case .fiat:
             return filteredRates.filter { $0.type == .fiat && !isFavorite(code: $0.name) }
         case .crypto:
             return filteredRates.filter { $0.type == .crypto && !isFavorite(code: $0.name) }
         case .metal:
-            return filteredRates.filter { $0.type == .metal && !isFavorite(code: $0.name) }
+            return filteredRates.filter { $0.type == .metal && !isFavorite(code: $0.name) }.sorted(by: { $0.fullName < $1.fullName })
         }
     }
 }

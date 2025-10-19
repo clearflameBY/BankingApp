@@ -28,8 +28,8 @@ final class DashboardViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        title = "Dashboard"
         formatter.dateFormat = "yyyy-MM-dd"
+        title = "Главный экран"
         
         fetchData()
         

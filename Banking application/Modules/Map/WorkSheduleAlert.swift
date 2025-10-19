@@ -48,10 +48,6 @@ class WorkSheduleAlert: UIView {
         
         self.details = details
         super.init(frame: frame)
-        
-        if MapViewController.isAlertShown {
-            self.removeAlertView()
-        }
                 
         self.backgroundColor = .systemBackground
         self.layer.cornerRadius = 12
@@ -146,6 +142,7 @@ class WorkSheduleAlert: UIView {
             self.frame.origin.y = -self.frame.height
         }) { _ in
             self.removeFromSuperview()
+            MapViewController.currentAlertView = nil
         }
     }
 }

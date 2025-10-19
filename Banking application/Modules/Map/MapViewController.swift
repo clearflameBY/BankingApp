@@ -22,12 +22,13 @@ class MapViewController: UIViewController {
     private var places: [GooglePlace] = []
     static let googleApiKey = "AIzaSyCQ3rPW1TAZX1VDjzlT7ichtTaNeIeeOGw"
     static var isAlertShown: Bool = false
+    static var currentAlertView: WorkSheduleAlert?
 
     private let defaultLocation = CLLocationCoordinate2D(latitude: 53.90454, longitude: 27.56152) // Минск, по умолчанию
     private var coordinate: CLLocationCoordinate2D {
         locationManager.location?.coordinate ?? defaultLocation
     }
-    private let radius = 2000 // метров
+    private let radius = 2000
     
     override func loadView() {
         view = customView
@@ -37,10 +38,36 @@ class MapViewController: UIViewController {
         super.viewDidLoad()
         
         view.backgroundColor = .systemBackground
+        title = "Карта"
+
         customView.tableView.isHidden = true
         let centerAction = UIAction(handler: { _ in
             self.centerOnUser()
         })
+        
+        customView.filterPoints.addAction(UIAction { [self] _ in
+            switch customView.filterPoints.selectedSegmentIndex {
+            case 0:
+                customView.mapView.removeAnnotations(customView.mapView.annotations)
+                customView.stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+                addATMsAnnotations()
+                setupATMsScrollCards()
+                addBanksAnnotations()
+                setupBanksScrollCards()
+            case 1:
+                customView.mapView.removeAnnotations(customView.mapView.annotations)
+                customView.stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+                addBanksAnnotations()
+                setupBanksScrollCards()
+            case 2:
+                customView.mapView.removeAnnotations(customView.mapView.annotations)
+                customView.stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+                addATMsAnnotations()
+                setupATMsScrollCards()
+            default:
+                return
+            }
+        }, for: .valueChanged)
         
         let recognizerHideKeyboard = UITapGestureRecognizer(target: customView, action: #selector(customView.endEditing))
         recognizerHideKeyboard.cancelsTouchesInView = false
@@ -90,14 +117,14 @@ class MapViewController: UIViewController {
                 let response = try JSONDecoder().decode(GoogleNearbyResponse.self, from: data)
                 DispatchQueue.main.async {
                     self?.placesATMs = response.results
-                    self?.addAnnotations()
-                    self?.setupScrollCards()
+                    self?.addATMsAnnotations()
+                    self?.setupATMsScrollCards()
                 }
-//                if let string = String(data: data, encoding: .utf8) {
-//                    print("Полученные данные:\n\(string)")
-//                } else {
-//                    print("Не удалось преобразовать данные в строку")
-//                }
+                if let string = String(data: data, encoding: .utf8) {
+                    print("Полученные данные:\n\(string)")
+                } else {
+                    print("Не удалось преобразовать данные в строку")
+                }
             } catch {
                 print("Ошибка парсинга:", error)
             }
@@ -120,8 +147,8 @@ class MapViewController: UIViewController {
                 let response = try JSONDecoder().decode(GoogleNearbyResponse.self, from: data)
                 DispatchQueue.main.async {
                     self?.placesBanks = response.results
-                    self?.addAnnotations()
-                    self?.setupScrollCards()
+                    self?.addBanksAnnotations()
+                    self?.setupBanksScrollCards()
                 }
             } catch {
                 print("Ошибка парсинга:", error)
@@ -129,8 +156,8 @@ class MapViewController: UIViewController {
         }.resume()
     }
     
-    private func addAnnotations() {
-        customView.mapView.removeAnnotations(customView.mapView.annotations)
+    private func addATMsAnnotations() {
+        
         for place in placesATMs {
             let annotation = MKPointAnnotation()
             annotation.title = place.name
@@ -138,6 +165,7 @@ class MapViewController: UIViewController {
             annotation.coordinate = CLLocationCoordinate2D(latitude: place.geometry.location.lat, longitude: place.geometry.location.lng)
             customView.mapView.addAnnotation(annotation)
         }
+        
         if let first = placesATMs.first {
             customView.mapView.setRegion(
                 MKCoordinateRegion(
@@ -146,6 +174,9 @@ class MapViewController: UIViewController {
                     longitudinalMeters: 2000
                 ), animated: true)
         }
+    }
+    
+    private func addBanksAnnotations() {
         
         for place in placesBanks {
             let annotation = MKPointAnnotation()
@@ -154,6 +185,7 @@ class MapViewController: UIViewController {
             annotation.coordinate = CLLocationCoordinate2D(latitude: place.geometry.location.lat, longitude: place.geometry.location.lng)
             customView.mapView.addAnnotation(annotation)
         }
+        
         if let first = placesBanks.first {
             customView.mapView.setRegion(
                 MKCoordinateRegion(
@@ -164,29 +196,33 @@ class MapViewController: UIViewController {
         }
     }
     
-    private func setupScrollCards() {
-        customView.stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+    private func setupATMsScrollCards() {
         
         for (index, place) in placesATMs.enumerated() {
             let card = UIButton()
             card.backgroundColor = .systemRed
             card.layer.cornerRadius = 10
-            card.setTitle(place.vicinity ?? place.name ?? "ATM", for: .normal)
+            let title = place.vicinity ?? place.name ?? "ATM"
+            card.setTitle("Банкомат: " + title, for: .normal)
             card.titleLabel?.font = .systemFont(ofSize: 14)
-            card.titleLabel?.numberOfLines = 2
+            card.titleLabel?.numberOfLines = 3
             card.tag = index
             card.addTarget(self, action: #selector(cardTapped(_:)), for: .touchUpInside)
             card.widthAnchor.constraint(equalToConstant: 200).isActive = true
             customView.stackView.addArrangedSubview(card)
         }
-        
+    }
+    
+    private func setupBanksScrollCards() {
+    
         for (index, place) in placesBanks.enumerated() {
             let card = UIButton()
             card.backgroundColor = .systemBlue
             card.layer.cornerRadius = 10
-            card.setTitle(place.vicinity ?? place.name ?? "Bank", for: .normal)
+            let title = place.vicinity ?? place.name ?? "Bank"
+            card.setTitle("Отделение банка: " + title, for: .normal)
             card.titleLabel?.font = .systemFont(ofSize: 14)
-            card.titleLabel?.numberOfLines = 2
+            card.titleLabel?.numberOfLines = 3
             card.tag = index
             card.addTarget(self, action: #selector(cardTapped(_:)), for: .touchUpInside)
             card.widthAnchor.constraint(equalToConstant: 200).isActive = true
@@ -209,9 +245,11 @@ class MapViewController: UIViewController {
     }
     
     private func showPlaceDetailsScreen(details: GooglePlaceDetails) {
-
+        
+        MapViewController.currentAlertView?.removeFromSuperview()
         let alertView = WorkSheduleAlert(frame: CGRect(x: 50, y: -150, width: self.view.frame.width - 100, height: 270), details: details)
         view.addSubview(alertView)
+        MapViewController.currentAlertView = alertView
         
         if !MapViewController.isAlertShown {
             UIView.animate(withDuration: 0.3, animations: {

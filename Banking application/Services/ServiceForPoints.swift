@@ -20,9 +20,6 @@ class ServiceForPoints {
             do {
                 let response = try JSONDecoder().decode(GoogleDetailsResponse.self, from: data)
                 completion(response.result)
-//                if let s = String(data: data, encoding: .utf8) {
-//                    print("Ответ Details:\n\(s)")
-//                }
             } catch {
                 print("Ошибка парсинга места:", error)
             }

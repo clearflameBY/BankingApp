@@ -10,6 +10,13 @@ import MapKit
 
 final class MapView: UIView {
     
+    let filterPoints : UISegmentedControl = {
+        let filter = UISegmentedControl(items: ["Банки и банкоматы", "Банки", "Банокоматы"])
+        filter.selectedSegmentIndex = 0
+        filter.translatesAutoresizingMaskIntoConstraints = false
+        return filter
+    }()
+    
     let mapView : MKMapView = {
         let view = MKMapView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -65,6 +72,7 @@ final class MapView: UIView {
     }
     
     private func setupUI() {
+        addSubview(filterPoints)
         addSubview(searchBar)
         addSubview(mapView)
         addSubview(tableView)
@@ -73,7 +81,12 @@ final class MapView: UIView {
         scrollView.addSubview(stackView)
         
         NSLayoutConstraint.activate([
-            searchBar.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+            filterPoints.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+            filterPoints.leadingAnchor.constraint(equalTo: leadingAnchor),
+            filterPoints.trailingAnchor.constraint(equalTo: trailingAnchor),
+            filterPoints.heightAnchor.constraint(equalToConstant: 45),
+            
+            searchBar.topAnchor.constraint(equalTo: filterPoints.bottomAnchor),
             searchBar.leadingAnchor.constraint(equalTo: leadingAnchor),
             searchBar.trailingAnchor.constraint(equalTo: trailingAnchor),
             searchBar.heightAnchor.constraint(equalToConstant: 44),
@@ -86,7 +99,7 @@ final class MapView: UIView {
             mapView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
             mapView.leadingAnchor.constraint(equalTo: leadingAnchor),
             mapView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            mapView.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 0.65),
+            mapView.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 0.6),
             
             locationButton.trailingAnchor.constraint(equalTo: mapView.trailingAnchor, constant: -16),
             locationButton.bottomAnchor.constraint(equalTo: mapView.bottomAnchor),
