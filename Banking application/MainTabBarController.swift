@@ -10,18 +10,32 @@ class MainTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let dashboardVC = UINavigationController(rootViewController: DashboardViewController())
+        // Services
+        let currencyService = CurrencyService()
+        let calculateService = CalculateService()
+        let mapService = InformationForMapService()
+        
+        // Dashboard
+        let dashboardRoot = DashboardViewController(service: currencyService, calculateService: calculateService)
+        let dashboardVC = UINavigationController(rootViewController: dashboardRoot)
         dashboardVC.tabBarItem = UITabBarItem(title: "Главная страница", image: UIImage(systemName: CustomImagesAssets.house), tag: 0)
         
-        let mapVC = UINavigationController(rootViewController: MapViewController())
+        // Map
+        let mapRoot = MapViewController(service: mapService)
+        let mapVC = UINavigationController(rootViewController: mapRoot)
         mapVC.tabBarItem = UITabBarItem(title: "Карта", image: UIImage(systemName: CustomImagesAssets.map), tag: 1)
         
-        let ratesVC = UINavigationController(rootViewController: ExchangeRatesViewController())
+        // Rates
+        let ratesRoot = ExchangeRatesViewController(service: currencyService)
+        let ratesVC = UINavigationController(rootViewController: ratesRoot)
         ratesVC.tabBarItem = UITabBarItem(title: "Курсы", image: UIImage(systemName: CustomImagesAssets.dollarsignCircle), tag: 2)
         
-        let converterVC = UINavigationController(rootViewController: ConverterViewController())
+        // Converter
+        let converterRoot = ConverterViewController(service: currencyService, calculateService: calculateService)
+        let converterVC = UINavigationController(rootViewController: converterRoot)
         converterVC.tabBarItem = UITabBarItem(title: "Конвертер", image: UIImage(systemName: CustomImagesAssets.arrowLeftArrowRight), tag: 3)
         
+        // Settings
         let settingsVC = UINavigationController(rootViewController: SettingsViewController())
         settingsVC.tabBarItem = UITabBarItem(title: "Настройки", image: UIImage(systemName: CustomImagesAssets.gear), tag: 4)
         

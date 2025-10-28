@@ -17,9 +17,8 @@ class ExchangeRatesViewController: UIViewController {
     private let favoritesKey = "FavoriteCurrencyCodes"
     
     private let formatter = DateFormatter()
-    private let service = CurrencyService()
+    private let service: CurrencyServiceInterface
     private let searchController = UISearchController(searchResultsController: nil)
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -193,6 +192,16 @@ class ExchangeRatesViewController: UIViewController {
             return filteredRates.filter { $0.type == .metal && !isFavorite(code: $0.name) }.sorted(by: { $0.fullName < $1.fullName })
         }
     }
+    
+    // Inject service via initializer
+    init(service: CurrencyServiceInterface) {
+        self.service = service
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 // MARK: - Table View Data Source
@@ -261,7 +270,7 @@ extension ExchangeRatesViewController: UITableViewDelegate {
         var currencyFullName: String = ""
         var isCrypto = false
 
-        // Маппинг по коду валюты/металла/крипты (оставить как есть)
+        // Mapping by currency/metal/crypto code
         switch code {
         case "AUD": curId = 440
         case "AMD": curId = 510; curScale = 1000
@@ -308,16 +317,17 @@ extension ExchangeRatesViewController: UITableViewDelegate {
             break
         }
         
+        let chartsService = CurrencyServiceForCharts()
         if curId > 370 && curId < 515 {
-            let chartView = ChartScreenForCurrency(curScale: curScale, curId: curId, currencyName: currencyName)
+            let chartView = ChartScreenForCurrency(service: chartsService, curScale: curScale, curId: curId, currencyName: currencyName)
             let chartVC = UIHostingController(rootView: chartView)
             navigationController?.pushViewController(chartVC, animated: true)
         } else if (0...4).contains(curId) && !isCrypto {
-            let chartView = ChartScreenForMetals(curId: curId, currencyName: currencyName)
+            let chartView = ChartScreenForMetals(service: chartsService, curId: curId, currencyName: currencyName)
             let chartVC = UIHostingController(rootView: chartView)
             navigationController?.pushViewController(chartVC, animated: true)
         } else if isCrypto {
-            let chartView = ChartScreenForCrypto(currencyName: currencyName, currencyFullName: currencyFullName)
+            let chartView = ChartScreenForCrypto(service: chartsService, currencyName: currencyName, currencyFullName: currencyFullName)
             let chartVC = UIHostingController(rootView: chartView)
             navigationController?.pushViewController(chartVC, animated: true)
         }

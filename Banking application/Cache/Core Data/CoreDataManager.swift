@@ -15,10 +15,10 @@ final class CoreDataManager {
     private lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "ConversionsHistoryDataModel")
         
-        // Явно укажем файловый SQLite-стор и путь к нему
+        // Explicitly specify the SQLite file store and the path to it
         let storeURL: URL = {
             let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-            // Убедимся, что папка существует
+            // Make sure the folder exists
             try? FileManager.default.createDirectory(at: appSupport, withIntermediateDirectories: true)
             return appSupport.appendingPathComponent("ConversionsHistoryDataModel.sqlite")
         }()
@@ -78,7 +78,7 @@ final class CoreDataManager {
     func getContribution(id: UUID) -> ConversionsHistoryModel? {
         let request: NSFetchRequest<ConversionsHistoryModel> = ConversionsHistoryModel.fetchRequest()
         request.fetchLimit = 1
-        // атрибут id имеет тип UUID — сравниваем UUID, а не строку
+        // the id attribute is of type UUID - we compare the UUID, not the string
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
 
         do {
@@ -95,7 +95,7 @@ final class CoreDataManager {
         saveContext()
     }
     
-    // Публичный метод, чтобы можно было сохранить изменения при уходе в фон
+    // Public method to save changes when going to background
     func saveIfNeeded() {
         saveContext()
     }

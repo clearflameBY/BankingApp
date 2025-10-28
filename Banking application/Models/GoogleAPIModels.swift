@@ -30,7 +30,7 @@ struct GooglePlace: Codable {
     let placeID: String
     let geometry: GoogleGeometry
     let vicinity: String?
-    let openingHours: PlaceOpenNow? // Nearby: только open_now
+    let openingHours: PlaceOpenNow? // Nearby: just open_now
     
     enum CodingKeys: String, CodingKey {
         case name = "name"
@@ -67,7 +67,7 @@ struct GooglePlaceDetails: Codable {
     let formattedAddress: String?
     let geometry: GoogleGeometry
     
-    // Полное расписание из Place Details
+    // Full schedule from Place Details
     let openingHours: OpeningHours?
     let currentOpeningHours: OpeningHours?
     let utcOffsetMinutes: Int?
@@ -85,11 +85,11 @@ struct GooglePlaceDetails: Codable {
 // MARK: - Opening hours (Place Details)
 
 struct OpeningHours: Codable {
-    // Актуальный флаг “открыто сейчас”
+    // Current "open now" flag
     let openNow: Bool?
-    // Текст по дням недели (локализованный, зависит от &language=)
+    // Text by day of the week (localized, depends on &language=)
     let weekdayText: [String]?
-    // Периоды работы (для разбора по времени)
+    // Work periods (for parsing by time)
     let periods: [OpeningPeriod]?
     
     enum CodingKeys: String, CodingKey {
@@ -105,10 +105,10 @@ struct OpeningPeriod: Codable {
 }
 
 struct OpeningTime: Codable {
-    // day: 0 (воскресенье) … 6 (суббота)
+    // day: 0 (Sunday) … 6 (Saturday)
     let day: Int?
-    // time: "HHmm", например "0900"
+    // time: "HHmm", for example "0900"
     let time: String?
-    // date: "YYYYMMDD" — бывает в current_opening_hours
+    // date: "YYYYMMDD" — occurs in current_opening_hours
     let date: String?
 }

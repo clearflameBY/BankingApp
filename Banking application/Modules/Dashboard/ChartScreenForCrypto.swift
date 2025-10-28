@@ -9,9 +9,15 @@ import Charts
 
 struct ChartScreenForCrypto: View {
     @State private var cryptoData: [CryptosPricePoint] = []
-    private let service = CurrencyServiceForCharts()
+    private let service: CurrencyServiceForChartsInterface
     let currencyName: String
     let currencyFullName: String
+
+    init(service: CurrencyServiceForChartsInterface, currencyName: String, currencyFullName: String) {
+        self.service = service
+        self.currencyName = currencyName
+        self.currencyFullName = currencyFullName
+    }
 
     var body: some View {
         ScrollView {
@@ -37,3 +43,4 @@ struct ChartScreenForCrypto: View {
         }
     }
 }
+

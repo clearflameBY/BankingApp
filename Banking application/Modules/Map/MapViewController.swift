@@ -8,30 +8,26 @@
 import UIKit
 import MapKit
 
-// MARK: - MapViewController
-
 class MapViewController: UIViewController {
     
-    private let locationManager = CLLocationManager()
-    private let customView = MapView()
-    private let service = ServiceForPoints()
+    static let customView = MapView()
+    private let service: InformationForMapServiceInterface
     
     private var suggestions: [GooglePlaceSuggestion] = []
-    private var placesATMs: [GooglePlace] = []
-    private var placesBanks: [GooglePlace] = []
-    private var places: [GooglePlace] = []
+    static var placesATMs: [GooglePlace] = []
+    static var placesBanks: [GooglePlace] = []
+    static var places: [GooglePlace] = []
     static let googleApiKey = "AIzaSyCQ3rPW1TAZX1VDjzlT7ichtTaNeIeeOGw"
     static var isAlertShown: Bool = false
     static var currentAlertView: WorkSheduleAlert?
-
-    private let defaultLocation = CLLocationCoordinate2D(latitude: 53.90454, longitude: 27.56152) // Минск, по умолчанию
-    private var coordinate: CLLocationCoordinate2D {
-        locationManager.location?.coordinate ?? defaultLocation
+    
+    init(service: InformationForMapServiceInterface) {
+        self.service = service
+        super.init(nibName: nil, bundle: nil)
     }
-    private let radius = 2000
     
     override func loadView() {
-        view = customView
+        view = MapViewController.customView
     }
 
     override func viewDidLoad() {
@@ -40,225 +36,69 @@ class MapViewController: UIViewController {
         view.backgroundColor = .systemBackground
         title = "Карта"
 
-        customView.tableView.isHidden = true
+        MapViewController.customView.tableView.isHidden = true
         let centerAction = UIAction(handler: { _ in
             self.centerOnUser()
         })
         
-        customView.filterPoints.addAction(UIAction { [self] _ in
-            switch customView.filterPoints.selectedSegmentIndex {
+        MapViewController.customView.filterPoints.addAction(UIAction { [self] _ in
+            switch MapViewController.customView.filterPoints.selectedSegmentIndex {
             case 0:
-                customView.mapView.removeAnnotations(customView.mapView.annotations)
-                customView.stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
-                addATMsAnnotations()
-                setupATMsScrollCards()
-                addBanksAnnotations()
-                setupBanksScrollCards()
+                MapViewController.customView.mapView.removeAnnotations(MapViewController.customView.mapView.annotations)
+                MapViewController.customView.stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+                service.addATMsAnnotations()
+                service.setupATMsScrollCards()
+                service.addBanksAnnotations()
+                service.setupBanksScrollCards()
             case 1:
-                customView.mapView.removeAnnotations(customView.mapView.annotations)
-                customView.stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
-                addBanksAnnotations()
-                setupBanksScrollCards()
+                MapViewController.customView.mapView.removeAnnotations(MapViewController.customView.mapView.annotations)
+                MapViewController.customView.stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+                service.addBanksAnnotations()
+                service.setupBanksScrollCards()
             case 2:
-                customView.mapView.removeAnnotations(customView.mapView.annotations)
-                customView.stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
-                addATMsAnnotations()
-                setupATMsScrollCards()
+                MapViewController.customView.mapView.removeAnnotations(MapViewController.customView.mapView.annotations)
+                MapViewController.customView.stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+                service.addATMsAnnotations()
+                service.setupATMsScrollCards()
             default:
                 return
             }
         }, for: .valueChanged)
         
-        let recognizerHideKeyboard = UITapGestureRecognizer(target: customView, action: #selector(customView.endEditing))
+        let recognizerHideKeyboard = UITapGestureRecognizer(target: MapViewController.customView, action: #selector(MapViewController.customView.endEditing))
         recognizerHideKeyboard.cancelsTouchesInView = false
-        customView.addGestureRecognizer(recognizerHideKeyboard)
+        MapViewController.customView.addGestureRecognizer(recognizerHideKeyboard)
         
-        customView.locationButton.addAction(centerAction, for: .touchUpInside)
+        MapViewController.customView.locationButton.addAction(centerAction, for: .touchUpInside)
 
-        customView.searchBar.delegate = self
-        customView.tableView.delegate = self
-        customView.tableView.dataSource = self
-        customView.mapView.delegate = self
+        MapViewController.customView.searchBar.delegate = self
+        MapViewController.customView.tableView.delegate = self
+        MapViewController.customView.tableView.dataSource = self
+        MapViewController.customView.mapView.delegate = self
         
-        locationManager.delegate = self
-        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        service.locationManager.delegate = self
+        service.locationManager.desiredAccuracy = kCLLocationAccuracyBest
                 
         setupLocation()
-        fetchATMs()
-        fetchBanks()
+        service.fetchATMs()
+        service.fetchBanks()
     }
     
     private func centerOnUser() {
-        if let location = locationManager.location?.coordinate {
+        if let location = service.locationManager.location?.coordinate {
             let region = MKCoordinateRegion(center: location, latitudinalMeters: 500, longitudinalMeters: 500)
-            customView.mapView.setRegion(region, animated: true)
+            MapViewController.customView.mapView.setRegion(region, animated: true)
         }
     }
     
     private func setupLocation() {
-        locationManager.requestWhenInUseAuthorization()
-        locationManager.startUpdatingLocation()
-        customView.mapView.showsUserLocation = true
+        service.locationManager.requestWhenInUseAuthorization()
+        service.locationManager.startUpdatingLocation()
+        MapViewController.customView.mapView.showsUserLocation = true
     }
     
-    private func fetchATMs() {
-
-        let urlString = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=\(coordinate.latitude),\(coordinate.longitude)&radius=\(radius)&type=atm&key=\(MapViewController.googleApiKey)&language=ru"
-        
-        guard let url = URL(string: urlString) else { return }
-        
-        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
-            if let error = error {
-                print("Ошибка запроса:", error)
-                return
-            }
-            guard let data = data else { return }
-            do {
-                let response = try JSONDecoder().decode(GoogleNearbyResponse.self, from: data)
-                DispatchQueue.main.async {
-                    self?.placesATMs = response.results
-                    self?.addATMsAnnotations()
-                    self?.setupATMsScrollCards()
-                }
-                if let string = String(data: data, encoding: .utf8) {
-                    print("Полученные данные:\n\(string)")
-                } else {
-                    print("Не удалось преобразовать данные в строку")
-                }
-            } catch {
-                print("Ошибка парсинга:", error)
-            }
-        }.resume()
-    }
-    
-    private func fetchBanks() {
-
-        let urlString = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=\(coordinate.latitude),\(coordinate.longitude)&radius=\(radius)&type=bank&key=\(MapViewController.googleApiKey)&language=ru"
-        
-        guard let url = URL(string: urlString) else { return }
-        
-        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
-            if let error = error {
-                print("Ошибка запроса:", error)
-                return
-            }
-            guard let data = data else { return }
-            do {
-                let response = try JSONDecoder().decode(GoogleNearbyResponse.self, from: data)
-                DispatchQueue.main.async {
-                    self?.placesBanks = response.results
-                    self?.addBanksAnnotations()
-                    self?.setupBanksScrollCards()
-                }
-            } catch {
-                print("Ошибка парсинга:", error)
-            }
-        }.resume()
-    }
-    
-    private func addATMsAnnotations() {
-        
-        for place in placesATMs {
-            let annotation = MKPointAnnotation()
-            annotation.title = place.name
-            annotation.subtitle = place.vicinity
-            annotation.coordinate = CLLocationCoordinate2D(latitude: place.geometry.location.lat, longitude: place.geometry.location.lng)
-            customView.mapView.addAnnotation(annotation)
-        }
-        
-        if let first = placesATMs.first {
-            customView.mapView.setRegion(
-                MKCoordinateRegion(
-                    center: CLLocationCoordinate2D(latitude: first.geometry.location.lat, longitude: first.geometry.location.lng),
-                    latitudinalMeters: 2000,
-                    longitudinalMeters: 2000
-                ), animated: true)
-        }
-    }
-    
-    private func addBanksAnnotations() {
-        
-        for place in placesBanks {
-            let annotation = MKPointAnnotation()
-            annotation.title = place.name
-            annotation.subtitle = place.vicinity
-            annotation.coordinate = CLLocationCoordinate2D(latitude: place.geometry.location.lat, longitude: place.geometry.location.lng)
-            customView.mapView.addAnnotation(annotation)
-        }
-        
-        if let first = placesBanks.first {
-            customView.mapView.setRegion(
-                MKCoordinateRegion(
-                    center: CLLocationCoordinate2D(latitude: first.geometry.location.lat, longitude: first.geometry.location.lng),
-                    latitudinalMeters: 2000,
-                    longitudinalMeters: 2000
-                ), animated: true)
-        }
-    }
-    
-    private func setupATMsScrollCards() {
-        
-        for (index, place) in placesATMs.enumerated() {
-            let card = UIButton()
-            card.backgroundColor = .systemRed
-            card.layer.cornerRadius = 10
-            let title = place.vicinity ?? place.name ?? "ATM"
-            card.setTitle("Банкомат: " + title, for: .normal)
-            card.titleLabel?.font = .systemFont(ofSize: 14)
-            card.titleLabel?.numberOfLines = 3
-            card.tag = index
-            card.addTarget(self, action: #selector(cardTapped(_:)), for: .touchUpInside)
-            card.widthAnchor.constraint(equalToConstant: 200).isActive = true
-            customView.stackView.addArrangedSubview(card)
-        }
-    }
-    
-    private func setupBanksScrollCards() {
-    
-        for (index, place) in placesBanks.enumerated() {
-            let card = UIButton()
-            card.backgroundColor = .systemBlue
-            card.layer.cornerRadius = 10
-            let title = place.vicinity ?? place.name ?? "Bank"
-            card.setTitle("Отделение банка: " + title, for: .normal)
-            card.titleLabel?.font = .systemFont(ofSize: 14)
-            card.titleLabel?.numberOfLines = 3
-            card.tag = index
-            card.addTarget(self, action: #selector(cardTapped(_:)), for: .touchUpInside)
-            card.widthAnchor.constraint(equalToConstant: 200).isActive = true
-            customView.stackView.addArrangedSubview(card)
-        }
-    }
-    
-    @objc private func cardTapped(_ sender: UIButton) {
-        places = placesBanks + placesATMs
-        let place = places[sender.tag]
-        let coord = CLLocationCoordinate2D(latitude: place.geometry.location.lat, longitude: place.geometry.location.lng)
-        customView.mapView.setCenter(coord, animated: false)
-        
-        service.fetchPlaceDetails(placeID: place.placeID) { [weak self] details in
-            DispatchQueue.main.async {
-                guard let details = details else { return }
-                self?.showPlaceDetailsScreen(details: details)
-            }
-        }
-    }
-    
-    private func showPlaceDetailsScreen(details: GooglePlaceDetails) {
-        
-        MapViewController.currentAlertView?.removeFromSuperview()
-        let alertView = WorkSheduleAlert(frame: CGRect(x: 50, y: -150, width: self.view.frame.width - 100, height: 270), details: details)
-        view.addSubview(alertView)
-        MapViewController.currentAlertView = alertView
-        
-        if !MapViewController.isAlertShown {
-            UIView.animate(withDuration: 0.3, animations: {
-                alertView.frame.origin.y = 100
-            })
-            MapViewController.isAlertShown = true
-        } else {
-            alertView.frame.origin.y = 100
-        }
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 }
 
@@ -267,15 +107,15 @@ extension MapViewController: UISearchBarDelegate  {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchText.isEmpty {
             suggestions.removeAll()
-            customView.tableView.reloadData()
-            customView.tableView.isHidden = true
+            MapViewController.customView.tableView.reloadData()
+            MapViewController.customView.tableView.isHidden = true
         } else {
             service.fetchSuggestions(query: searchText) { [weak self] newSuggestions in
                 DispatchQueue.main.async {
                     self?.suggestions = newSuggestions
-                    self?.customView.tableView.reloadData()
-                    self?.customView.tableView.isHidden = false
-                    self?.customView.tableView.isHidden = newSuggestions.isEmpty
+                    MapViewController.customView.tableView.reloadData()
+                    MapViewController.customView.tableView.isHidden = false
+                    MapViewController.customView.tableView.isHidden = newSuggestions.isEmpty
                 }
             }
         }
@@ -285,21 +125,21 @@ extension MapViewController: UISearchBarDelegate  {
 extension MapViewController: MKMapViewDelegate {
     
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-        // Не перекрашивать пользовательский "синий кружок"
+        // Don't recolor the custom "blue circle"
         if annotation is MKUserLocation { return nil }
 
         let annotationView = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: "something")
 
-        // Найдём объект в массиве placesATMs по координате
-        if placesATMs.first(where: {
+        // Find an object in the placesATMs array by coordinate
+        if MapViewController.placesATMs.first(where: {
             $0.geometry.location.lat == annotation.coordinate.latitude &&
             $0.geometry.location.lng == annotation.coordinate.longitude
         }) != nil {
                 annotationView.markerTintColor = .systemRed
             }
         
-        // Найдём объект в массиве placesBanks по координате
-        if placesBanks.first(where: {
+        // Find an object in the placesBanks array by coordinate
+        if MapViewController.placesBanks.first(where: {
             $0.geometry.location.lat == annotation.coordinate.latitude &&
             $0.geometry.location.lng == annotation.coordinate.longitude
         }) != nil {
@@ -312,23 +152,23 @@ extension MapViewController: MKMapViewDelegate {
     
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
         
-        places = placesATMs + placesBanks
+        MapViewController.places = MapViewController.placesATMs + MapViewController.placesBanks
         
         guard let annotation = view.annotation,
-              let index = places.firstIndex(where: {
+              let index = MapViewController.places.firstIndex(where: {
                   $0.geometry.location.lat == annotation.coordinate.latitude &&
                   $0.geometry.location.lng == annotation.coordinate.longitude
               }) else { return }
         
-        let xOffset = CGFloat(index) * 210 // ширина карточки + spacing
-        customView.scrollView.setContentOffset(CGPoint(x: xOffset, y: 0), animated: true)
+        let xOffset = CGFloat(index) * 210 // card width + spacing
+        MapViewController.customView.scrollView.setContentOffset(CGPoint(x: xOffset, y: 0), animated: true)
         
-        // Загружаем подробности и открываем экран с режимом работы
-        let place = places[index]
+        // Load details and open the operating mode screen
+        let place = MapViewController.places[index]
         service.fetchPlaceDetails(placeID: place.placeID) { [weak self] details in
             DispatchQueue.main.async {
                 guard let details = details else { return }
-                self?.showPlaceDetailsScreen(details: details)
+                self?.service.showPlaceDetailsScreen(details: details)
             }
         }
     }
@@ -358,27 +198,27 @@ extension MapViewController: UITableViewDelegate {
             DispatchQueue.main.async {
                 guard let self = self, let placeDetails = placeDetails else { return }
                 
-                // Перемещаем карту на найденную точку
+                // Move the map to the found point
                 let coordinate = CLLocationCoordinate2D(
                     latitude: placeDetails.geometry.location.lat,
                     longitude: placeDetails.geometry.location.lng)
                 let region = MKCoordinateRegion(center: coordinate, latitudinalMeters: 1000, longitudinalMeters: 1000)
-                self.customView.mapView.setRegion(region, animated: true)
+                MapViewController.customView.mapView.setRegion(region, animated: true)
                 
-                // Добавляем маркер
+                // Add a marker
                 let annotation = MKPointAnnotation()
                 annotation.coordinate = coordinate
                 annotation.title = placeDetails.name
                 annotation.subtitle = placeDetails.formattedAddress
-                self.customView.mapView.addAnnotation(annotation)
+                MapViewController.customView.mapView.addAnnotation(annotation)
                 
-                // ✅ Скрываем список подсказок
+                // ✅ Hide the list of suggestions
                 self.suggestions.removeAll()
                 tableView.reloadData()
                 tableView.isHidden = true
                 
-                // Открываем экран с режимом работы
-                self.showPlaceDetailsScreen(details: placeDetails)
+                // Open the screen with the operating mode
+                self.service.showPlaceDetailsScreen(details: placeDetails)
             }
         }
     }
@@ -386,8 +226,9 @@ extension MapViewController: UITableViewDelegate {
 
 extension MapViewController: CLLocationManagerDelegate {
     
-    // MARK: (если нужно использовать)
+    // MARK: (if needed to use)
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        // Можно автоматически центрировать на пользователе при старте
+        // Can be automatically centered on the user on startup
     }
 }
+

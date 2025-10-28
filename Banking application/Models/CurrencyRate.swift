@@ -27,8 +27,8 @@ struct CurrencyRate: Decodable, Identifiable, Equatable {
 
 struct CurrencyRate2: Codable {
     let name: String   // "USD"
-    let fullName: String // "Доллар США"
-    let rate: Double   // курс
+    let fullName: String // "US Dollar"
+    let rate: Double
     let type: CurrencyType
 }
 

@@ -9,10 +9,17 @@ import UIKit
 
 final class ConverterViewController: UIViewController {
     
-    private let service = CurrencyService()
+    private let service: CurrencyServiceInterface
     static let customView = ConverterView()
-    private let calculateService = CalculateService()
+    private let calculateService: CalculateServiceInterface
     var storageForVariable = ""
+    
+    // MARK: - Designated initializer
+    init(service: CurrencyServiceInterface, calculateService: CalculateServiceInterface) {
+        self.service = service
+        self.calculateService = calculateService
+        super.init(nibName: nil, bundle: nil)
+    }
         
     override func loadView() {
         view = ConverterViewController.customView
@@ -63,6 +70,10 @@ final class ConverterViewController: UIViewController {
     @objc
     private func hideKeyboard() {
         view.endEditing(true)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 }
 

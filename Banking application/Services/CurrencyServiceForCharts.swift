@@ -7,7 +7,13 @@
 
 import Foundation
 
-class CurrencyServiceForCharts {
+protocol CurrencyServiceForChartsInterface {
+    func fetchHistoryForCurrency(curId: Int, startDate: String, endDate: String, completion: @escaping ([CurrencyHistory]) -> Void)
+    func fetchHistoryForMetals(curId: Int, startDate: String, endDate: String, completion: @escaping ([MetalModel]) -> Void)
+    func fetchHistoryForCryptos(for coinID: String, completion: @escaping ([CryptosPricePoint]) -> Void)
+}
+
+class CurrencyServiceForCharts: CurrencyServiceForChartsInterface {
     
     func fetchHistoryForCurrency(curId: Int, startDate: String, endDate: String, completion: @escaping ([CurrencyHistory]) -> Void) {
         let urlString = "https://api.nbrb.by/ExRates/Rates/Dynamics/\(curId)?startDate=\(startDate)&endDate=\(endDate)"

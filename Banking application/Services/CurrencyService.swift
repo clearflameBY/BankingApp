@@ -6,11 +6,17 @@
 //
 
 import Foundation
-import UIKit
 
-class CurrencyService {
+protocol CurrencyServiceInterface {
+    func fetchRatesForCurrency(completion: @escaping (Result<[CurrencyRate], Error>) -> Void)
+    func fetchRatesForMetals(dayForMetalCurrencyString: String, completion: @escaping (Result<[MetalModel], Error>) -> Void)
+    func fetchCryptoPrice(crypto: String, completion: @escaping (Double?) -> Void)
+}
+
+class CurrencyService: CurrencyServiceInterface {
     
     func fetchRatesForCurrency(completion: @escaping (Result<[CurrencyRate], Error>) -> Void) {
+        
         let urlString = "https://api.nbrb.by/exrates/rates?periodicity=0"
         guard let url = URL(string: urlString) else { return }
         
@@ -54,6 +60,7 @@ class CurrencyService {
     }
     
     func fetchCryptoPrice(crypto: String, completion: @escaping (Double?) -> Void) {
+        
         let urlString = "https://api.coingecko.com/api/v3/simple/price?ids=\(crypto)&vs_currencies=usd"
         guard let url = URL(string: urlString) else {
             completion(nil)

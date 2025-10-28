@@ -11,10 +11,17 @@ import Charts
 struct ChartScreenForCurrency: View {
     @State private var history: [CurrencyHistory] = []
     
-    private let service = CurrencyServiceForCharts()
+    private let service: CurrencyServiceForChartsInterface
     let curScale: Double
     let curId: Int
     let currencyName: String
+
+    init(service: CurrencyServiceForChartsInterface, curScale: Double, curId: Int, currencyName: String) {
+        self.service = service
+        self.curScale = curScale
+        self.curId = curId
+        self.currencyName = currencyName
+    }
     
     var body: some View {
         VStack {
@@ -67,3 +74,4 @@ struct ChartScreenForCurrency: View {
         return string
     }
 }
+

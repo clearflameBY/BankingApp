@@ -29,7 +29,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func sceneWillEnterForeground(_ scene: UIScene) { }
 
     func sceneDidEnterBackground(_ scene: UIScene) {
-        // Сохраняем любые несохранённые изменения Core Data
+        // Save any unsaved changes to Core Data
         CoreDataManager.shared.saveIfNeeded()
     }
 }

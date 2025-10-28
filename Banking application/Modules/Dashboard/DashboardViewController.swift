@@ -17,9 +17,16 @@ final class DashboardViewController: UIViewController {
     private var currentAbbreviationOfCurrency = ""
     
     private let formatter = DateFormatter()
-    private let service = CurrencyService()
+    private let service: CurrencyServiceInterface
     static let customView = DashboardView()
-    private let calculateService = CalculateService()
+    private let calculateService: CalculateServiceInterface
+    
+    // MARK: - Designated initializer
+    init(service: CurrencyServiceInterface, calculateService: CalculateServiceInterface) {
+        self.service = service
+        self.calculateService = calculateService
+        super.init(nibName: nil, bundle: nil)
+    }
     
     override func loadView() {
         view = DashboardViewController.customView
@@ -94,14 +101,14 @@ final class DashboardViewController: UIViewController {
     }
     
     private func updateRatesUI() {
-        // Валюты
+        // Currencies
         let wantedCurrencies = ["UAH", "USD", "EUR", "RUB"]
         for rate in DashboardViewController.rates.filter({ wantedCurrencies.contains($0.curAbbreviation) }) {
             let ratePerOne = rate.curOfficialRate / Double(rate.curScale)
             curenciesData.append("\(rate.curAbbreviation): \(String(format: "%.4f", ratePerOne)) BYN")
         }
         
-        // Металлы
+        // Metals
         var dayForMetalCurrency = Date()
         
         while Calendar.current.isDateInWeekend(dayForMetalCurrency) {
@@ -160,15 +167,21 @@ final class DashboardViewController: UIViewController {
             break
         }
         
+        // Create charts service and pass it to SwiftUI views
+        let chartsService = CurrencyServiceForCharts()
         if currencyId == 0 || currencyId == 1 {
-            let chartView = ChartScreenForMetals(curId: currencyId, currencyName: currentAbbreviationOfCurrency)
+            let chartView = ChartScreenForMetals(service: chartsService, curId: currencyId, currencyName: currentAbbreviationOfCurrency)
             let chartVC = UIHostingController(rootView: chartView)
             navigationController?.pushViewController(chartVC, animated: true)
         } else {
-            let chartView = ChartScreenForCurrency(curScale: curScale, curId: currencyId, currencyName: currentAbbreviationOfCurrency)
+            let chartView = ChartScreenForCurrency(service: chartsService, curScale: curScale, curId: currencyId, currencyName: currentAbbreviationOfCurrency)
             let chartVC = UIHostingController(rootView: chartView)
             navigationController?.pushViewController(chartVC, animated: true)
         }
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 }
 
@@ -212,3 +225,4 @@ extension DashboardViewController: UITableViewDataSource, UITableViewDelegate {
         showGraph(row: indexPath.row)
     }
 }
+

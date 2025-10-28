@@ -30,7 +30,7 @@ class TableViewCell: UITableViewCell {
         return v
     }()
 
-    // Вызывается при тапе по звезде
+    // Called when you tap on the star
     var onToggleFavorite: (() -> Void)?
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -86,7 +86,7 @@ class TableViewCell: UITableViewCell {
     }
     
     @objc private func starValueChanged(_ sender: ToggleSwitchView) {
-        // Дадим контроллеру возможность обновить модель избранного
+        // Let's give the controller the ability to update the favorites model
         onToggleFavorite?()
     }
 }
